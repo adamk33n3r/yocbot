@@ -1,11 +1,21 @@
-import { readdirSync, readFileSync, readSync } from 'fs';
+import { readdirSync } from 'fs';
 import path from 'path';
-import { SlashCommand } from 'src/SlashCommand';
 
 export class CommandLoader {
     private commandPaths: string[];
     constructor(...commandPaths: string[]) {
         this.commandPaths = commandPaths;
+    }
+
+    public load(fileName: string): void {
+        this.commandPaths.flatMap((commandPath) => {
+            const commandFiles = readdirSync(path.join(__dirname, commandPath))
+                .filter(file => file === `${fileName}.ts`);
+            return commandFiles.map(file => {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                return require(`./${commandPath}/${file}`).default;
+            });
+        });
     }
 
     public loadAll(): void {
@@ -17,13 +27,6 @@ export class CommandLoader {
                 return require(`./${commandPath}/${file}`).default;
             });
         });
-    }
-
-    public loadCommand(commandPath: string): SlashCommand {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require(path.join(__dirname, commandPath));
-        console.log(__dirname, commandPath, mod);
-        return mod.default;
     }
 
 }

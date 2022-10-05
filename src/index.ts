@@ -1,13 +1,24 @@
 import 'reflect-metadata';
+import yargs from 'yargs';
 import { Bot } from './Bot';
+import logger from './Logger';
 
 import localConfig from './local.config.json';
 
-console.log('Bot is starting...');
+const argv = yargs.options({
+    testbot: { type: 'boolean', default: false },
+}).parseSync();
 
-const CLIENT_ID = '564893987010248712';
+logger.info('Bot is starting...');
+
 const PERMISSIONS = 8; // Admin
 const SCOPE = 'bot%20applications.commands';
-console.log(`https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&permissions=${PERMISSIONS}&scope=${SCOPE}`);
 
-new Bot().login(localConfig.token);
+if (argv.testbot) {
+    logger.info(`https://discord.com/api/oauth2/authorize?client_id=${localConfig.testBot.clientId}&permissions=${PERMISSIONS}&scope=${SCOPE}`);
+    new Bot().login(localConfig.testBot.token);
+} else {
+    logger.info(`https://discord.com/api/oauth2/authorize?client_id=${localConfig.clientId}&permissions=${PERMISSIONS}&scope=${SCOPE}`);
+    new Bot().login(localConfig.token);
+}
+

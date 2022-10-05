@@ -4,6 +4,7 @@ import { Bot } from 'src/Bot';
 import { SlashCommand, SlashCommandOption, SlashCommands } from 'src/types/CommandDecorators';
 import { OnlyRoles } from './guards/Permissions';
 import { BotMustBeDisconnected, MemberMustBeInSameVoiceChannel, MemberMustBeInVoiceChannel } from './guards/VoiceChannel';
+import logger from '../Logger';
 
 @SlashCommands()
 export abstract class MusicCommands {
@@ -17,7 +18,7 @@ export abstract class MusicCommands {
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ): Promise<unknown> {
-        console.log('running play command', urlOrSearch, typeof urlOrSearch, typeof bot, typeof interaction);
+        logger.info(`running play command ${urlOrSearch}`);
         const member = interaction.member as GuildMember;
         // TODO: check if youre in the SAME channel
         if (!member?.voice?.channel) {
@@ -139,11 +140,11 @@ export abstract class MusicCommands {
         const member = interaction.member as GuildMember;
         const connection = getVoiceConnection(member.voice.guild.id);
         if (connection) {
-            console.log('found connection');
+            logger.info('found connection');
             bot.musicPlayer.stop();
             connection.destroy();
         } else {
-            console.log('could not find connection');
+            logger.info('could not find connection');
         }
 
         return interaction.followUp('Left channel');
@@ -159,10 +160,10 @@ export abstract class MusicCommands {
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ) {
-        console.log('Search Query:', query);
+        logger.info(`Search Query: ${query}`);
 
         const results = await bot.musicPlayer.search(query, 5);
-        console.log(results.length + ' results');
+        logger.info(results.length + ' results');
 
         const selectRow = new ActionRowBuilder<SelectMenuBuilder>()
             .addComponents(new SelectMenuBuilder()

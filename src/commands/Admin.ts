@@ -1,5 +1,6 @@
 import { ChannelType, ChatInputCommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { Bot } from 'src/Bot';
+import logger from 'src/Logger';
 import { SlashCommand, SlashCommandOption, SlashCommands } from 'src/types/CommandDecorators';
 
 @SlashCommands()
@@ -18,12 +19,15 @@ export abstract class AdminCommands {
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ) {
+        logger.debug('moveAll command', channel);
         const member = interaction.member as GuildMember;
+        logger.debug('member voice channel', member.voice.channel);
         if (!member?.voice?.channel) {
             return interaction.followUp('You must be in a voice channel to use this command');
         }
 
         await Promise.all(member.voice.channel.members.map(vMem => {
+            logger.debug(`running setChannel for ${vMem.nickname}`, { vMem, channel });
             return vMem.voice.setChannel(channel.id);
         }).filter(m => m));
 

@@ -13,9 +13,9 @@ import { ClassDecoratorEx, MethodDecoratorEx, ParameterDecoratorEx } from './Dec
 // }
 
 export function SlashCommands(): ClassDecoratorEx {
-    // console.log('slashCommands decorator parent');
+    // logger.info('slashCommands decorator parent');
     return function(target: Record<string, unknown>) {
-        // console.log('slashCommands decorator');
+        // logger.info('slashCommands decorator');
     };
 }
 
@@ -111,7 +111,7 @@ function before(beforeFunc: (bot: Bot, interaction: ChatInputCommandInteraction)
         }
         const original: SlashCommand['execute'] = execute.value;
         execute.value = function (bot: Bot, interaction: ChatInputCommandInteraction) {
-            console.log('RUNNING MODIFIED EXECUTE');
+            logger.info('RUNNING MODIFIED EXECUTE');
             if (beforeFunc(bot, interaction)) {
                 return original.call(this, bot, interaction);
             } else {

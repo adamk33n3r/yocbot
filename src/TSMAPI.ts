@@ -98,17 +98,17 @@ function formatCoins(coins: number): string {
     return `${coinObj.gold}g ${coinObj.silver}s ${coinObj.copper}c`;
 }
 
-console.log(formatCoins(12343237548219));
+logger.info(formatCoins(12343237548219));
 
 doit().then(async (res) => {
     const at = res.access_token;
-    console.log(res);
+    logger.info(res);
     // const realm = await getRequest(`https://realm-api.tradeskillmaster.com/realms/${tsmapi.realm}`, at) as TSMRealmData;
-    // console.log(realm.auctionHouses);
+    // logger.info(realm.auctionHouses);
     const itemid = 43396;
     const item = await getRequest<TSMItemData>(`https://pricing-api.tradeskillmaster.com/ah/${tsmapi.auctionHouse}/item/${itemid}`, at);
-    console.log(item);
+    logger.info(item);
     // const regionItemData = await getRequest<TSMItemData>(`https://pricing-api.tradeskillmaster.com/region/${tsmapi.region}/item/${itemid}`, at);
-    // console.log(regionItemData);
-    console.log(`${item.itemId}: ${formatCoins(item.marketValue)}`);
+    // logger.info(regionItemData);
+    logger.info(`${item.itemId}: ${formatCoins(item.marketValue)}`);
 });

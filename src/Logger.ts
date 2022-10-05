@@ -1,50 +1,50 @@
-import { Logger as WLogger, transports } from 'winston';
+import { createLogger, transports, format } from 'winston';
 import chalk from 'chalk';
 
-const logger = new WLogger({
+const logger = createLogger({
     transports: [
         new transports.File({
-            format: {
-                transform: (info, opts) => {
-                    return {
-                        level: info.level,
-                        message: info.message,
-                    };
-                },
-            },
+            filename: 'main.log',
         }),
         new transports.Console({
-            format: {
-                transform: (info, opts) => {
-                    const message = info.message ?? '';
+            format: format.combine(
+                format((info, opts) => {
+                    const { level, message, ...meta } = info;
 
-                    let meta = '';
-
-                    if(info.meta && Object.keys(info.meta).length) {
-                        meta = '\n\t' + JSON.stringify(info.meta);
+                    let metaString = '';
+                    if(meta && Object.keys(meta).length) {
+                        metaString = '\n\t' + JSON.stringify(meta);
                     }
 
-                    let level = info.level.toUpperCase();
+                    let levelString = level.toUpperCase();
 
-                    switch (level) {
+                    switch (info.level.toUpperCase()) {
                         case 'INFO':
-                            level = chalk.cyan(level);
+                            levelString = chalk.cyan(level);
                             break;
                         case 'WARN':
-                            level = chalk.yellow(level);
+                            levelString = chalk.yellow(level);
                             break;
                         case 'ERROR':
-                            level = chalk.red(level);
+                            levelString = chalk.red(level);
                             break;
+                    }
+
+                    let messageString = message;
+                    if (typeof message !== 'string') {
+                        messageString = JSON.stringify(message);
                     }
 
                     return {
                         level,
-                        message: `[${info.timestamp()}][${level}] ${message}`,
-                        meta,
+                        message: `[${levelString}] ${messageString} ${metaString}`,
                     };
-                },
-            },
+                })(),
+                format.timestamp(),
+                format.printf((info) => {
+                    return `[${info.timestamp}]${info.message}`;
+                }),
+            ),
         }),
     ],
 });

@@ -1,15 +1,16 @@
 import { getVoiceConnection } from '@discordjs/voice';
 import { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { Bot } from 'src/Bot';
+import logger from 'src/Logger';
 
 export function MemberMustBeInSameVoiceChannel(allowDisconnected: boolean = false) {
     return function (bot: Bot, interaction: ChatInputCommandInteraction): string | undefined {
         const member = interaction.member as GuildMember;
-        console.log(member.nickname, member.guild, member.guild.id);
+        logger.info(`${member.nickname}, ${member.guild}, ${member.guild.id}`);
         const connection = getVoiceConnection(member.guild.id);
-        console.log(connection, connection?.joinConfig.channelId, member.voice.channelId);
+        logger.info(`${connection}, ${connection?.joinConfig.channelId}, ${member.voice.channelId}`);
         if (allowDisconnected && !member?.voice?.channel && !connection) {
-            console.log('both member and bot are disconnected, so we are allowing the command');
+            logger.info('both member and bot are disconnected, so we are allowing the command');
             return;
         }
         if (connection && connection.joinConfig.channelId !== member.voice.channelId) {

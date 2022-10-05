@@ -1,7 +1,7 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior, VoiceConnectionStatus } from '@discordjs/voice';
-import { VoiceChannel } from 'discord.js';
+import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
 import play, { YouTubeVideo } from 'play-dl';
 import { Bot } from './Bot';
+import logger from './Logger';
 
 export class MusicPlayer {
 
@@ -62,7 +62,7 @@ export class MusicPlayer {
     public async queue(query: string): Promise<YouTubeVideo | string | undefined> {
 
         const validation = await play.validate(query);
-        console.log('validation:', validation);
+        logger.info(`validation: ${validation}`);
         let details: YouTubeVideo;
         if (!validation) {
             return 'Source not supported';
@@ -75,14 +75,14 @@ export class MusicPlayer {
         } else {
             const ytInfo = await play.video_info(query);
             details = ytInfo.video_details;
-            console.log('Song from URL:', ytInfo.video_details.title);
+            logger.info(`Song from URL: ${ytInfo.video_details.title}`);
         }
 
         if (this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-            console.log('player is idle so playing now');
+            logger.info('player is idle so playing now');
             this.playSong(details);
         } else {
-            console.log('adding song to queue');
+            logger.info('adding song to queue');
             this.songQueue.push(details);
         }
 

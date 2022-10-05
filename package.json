@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
+    "starttest": "ts-node -r tsconfig-paths/register src/index.ts --testbot",
     "auth": "ts-node auth-yt.ts",
     "deploy-commands": "ts-node -r tsconfig-paths/register src/deploy-commands.ts",
     "tsm": "ts-node -r tsconfig-paths/register src/TSMAPI.ts",
@@ -24,13 +25,15 @@
     "play-dl": "^1.9.5",
     "reflect-metadata": "^0.1.13",
     "utf-8-validate": "^5.0.9",
+    "yargs": "^17.6.0",
     "yt-search": "^2.10.3"
   },
   "devDependencies": {
     "@types/node": "^18.7.14",
+    "@types/yargs": "^17.0.13",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
-    "chalk": "^5.0.1",
+    "chalk": "^4",
     "eslint": "^8.23.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",

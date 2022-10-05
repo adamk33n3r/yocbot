@@ -8,8 +8,9 @@ import { MetadataManager } from './MetadataManager';
 
 import { MusicPlayer } from './MusicPlayer';
 import { SlashCommand } from './SlashCommand';
+import logger from './Logger';
 
-// console.log(generateDependencyReport());
+// logger.info(generateDependencyReport());
 
 export class Bot {
     private _musicPlayer: MusicPlayer = new MusicPlayer(this, '146029873629102080');
@@ -63,7 +64,7 @@ export class Bot {
                 {
                     name: 'its own thoughts',
                     type: ActivityType.Listening,
-                }
+                },
             ],
         });
     }
@@ -79,7 +80,7 @@ export class Bot {
                 {
                     name: status,
                     type,
-                }
+                },
             ],
         });
     }
@@ -92,7 +93,7 @@ export class Bot {
 
             this.clearStatus();
 
-            console.log(`${this._client.user.username} is online`);
+            logger.info(`${this._client.user.username} is online`);
         });
     }
 
@@ -119,7 +120,7 @@ export class Bot {
                         });
                     }
                     const songURL = interaction.values[0];
-                    console.log(`Selected ${songURL} from the list`);
+                    logger.info(`Selected ${songURL} from the list`);
                     const song = await this.musicPlayer.queue(songURL);
                     if (!song || typeof song === 'string') {
                         await interaction.update(song || 'An error occurred');
@@ -135,21 +136,22 @@ export class Bot {
     }
 
     private async handleSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
-        console.log('loaded commands');
+        // logger.info('loaded commands');
         // for (const cmd of this.commands) {
-        //     console.log(cmd.toJSON(), cmd.execute);
+        //     logger.info(cmd.toJSON());
+        //     logger.info(cmd.execute);
         // }
 
         await interaction.deferReply({ ephemeral: true });
 
         const slashCommand = this.commands.find(c => c.name === interaction.commandName);
         if (!slashCommand) {
-            console.log('no command:', interaction.commandName);
+            logger.info(`no command: ${interaction.commandName}`);
             interaction.followUp({ content: 'An error has occurred' });
             return;
         }
 
-        console.log(`Recieved command: ${interaction.commandName}`);
+        logger.info(`Recieved command: ${interaction.commandName}`);
 
         await slashCommand.execute(this, interaction);
     }
