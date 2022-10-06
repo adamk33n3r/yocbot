@@ -1,5 +1,5 @@
-import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { ActivityType, ChatInputCommandInteraction, Client, GatewayIntentBits, GuildMember, Interaction, Options } from 'discord.js';
+import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
+import { ActivityType, ChatInputCommandInteraction, Client, GatewayIntentBits, Guild, GuildMember, Interaction, Options, VoiceBasedChannel } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
 import { guildId } from './local.config.json';
@@ -13,7 +13,7 @@ import logger from './Logger';
 // logger.info(generateDependencyReport());
 
 export class Bot {
-    private _musicPlayer: MusicPlayer = new MusicPlayer(this, '146029873629102080');
+    private _musicPlayer: MusicPlayer = new MusicPlayer(this, guildId);
     private _client!: Client;
     public get client(): Client {
         return this._client;
@@ -85,6 +85,24 @@ export class Bot {
         });
     }
 
+    public joinVoiceChannel(channel: VoiceBasedChannel): VoiceConnection {
+        return joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guild.id,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+        });
+    }
+
+    public leaveVoiceChannel(guildId: string): boolean {
+        const connection = getVoiceConnection(guildId);
+        if (connection) {
+            connection.destroy();
+            return true;
+        }
+
+        return false;
+    }
+
     private onReady() {
         this._client.on('ready', async () => {
             if (!this._client.user || !this._client.application) {
@@ -111,13 +129,9 @@ export class Bot {
                         await interaction.update('You must be in a voice channel to use this command');
                         return;
                     }
-                    let connection = getVoiceConnection(member.voice.guild.id);
+                    const connection = getVoiceConnection(member.voice.guild.id);
                     if (!connection) {
-                        connection = joinVoiceChannel({
-                            channelId: member.voice.channel.id,
-                            guildId: member.guild.id,
-                            adapterCreator: member.guild.voiceAdapterCreator,
-                        });
+                        this.joinVoiceChannel(member.voice.channel);
                     }
                     const songURL = interaction.values[0];
                     logger.info(`Selected ${songURL} from the list`);

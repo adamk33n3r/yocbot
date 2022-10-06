@@ -6,9 +6,9 @@ import logger from 'src/Logger';
 export function MemberMustBeInSameVoiceChannel(allowDisconnected: boolean = false) {
     return function (bot: Bot, interaction: ChatInputCommandInteraction): string | undefined {
         const member = interaction.member as GuildMember;
-        logger.info(`${member.nickname}, ${member.guild}, ${member.guild.id}`);
+        // logger.info(`${member.nickname}, ${member.guild}, ${member.guild.id}`);
         const connection = getVoiceConnection(member.guild.id);
-        logger.info(`${connection}, ${connection?.joinConfig.channelId}, ${member.voice.channelId}`);
+        // logger.info(`${connection}, ${connection?.joinConfig.channelId}, ${member.voice.channelId}`);
         if (allowDisconnected && !member?.voice?.channel && !connection) {
             logger.info('both member and bot are disconnected, so we are allowing the command');
             return;

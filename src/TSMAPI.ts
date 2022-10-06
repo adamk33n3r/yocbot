@@ -1,5 +1,7 @@
-import { tsmapi } from './local.config.json';
 import got from 'got';
+
+import logger from './Logger';
+import { tsmapi } from './local.config.json';
 
 interface OAuth2Response {
     access_token: string;

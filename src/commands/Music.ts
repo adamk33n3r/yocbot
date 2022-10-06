@@ -18,19 +18,15 @@ export abstract class MusicCommands {
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ): Promise<unknown> {
-        logger.info(`running play command ${urlOrSearch}`);
+        logger.info(`running play command: ${urlOrSearch}`);
         const member = interaction.member as GuildMember;
         // TODO: check if youre in the SAME channel
         if (!member?.voice?.channel) {
             return interaction.followUp('You must be in a voice channel to use this command');
         }
-        let connection = getVoiceConnection(member.voice.guild.id);
+        const connection = getVoiceConnection(member.voice.guild.id);
         if (!connection) {
-            connection = joinVoiceChannel({
-                channelId: member.voice.channel.id,
-                guildId: member.guild.id,
-                adapterCreator: member.guild.voiceAdapterCreator,
-            });
+            bot.joinVoiceChannel(member.voice.channel);
         }
 
         const song = await bot.musicPlayer.queue(urlOrSearch);
@@ -123,11 +119,7 @@ export abstract class MusicCommands {
             return interaction.followUp('You must be in a voice channel to use this command');
         }
 
-        joinVoiceChannel({
-            channelId: member.voice.channel.id,
-            guildId: member.voice.channel.guild.id,
-            adapterCreator: member.voice.channel.guild.voiceAdapterCreator,
-        });
+        bot.joinVoiceChannel(member.voice.channel);
 
         return interaction.followUp('Joined channel');
     }
@@ -138,13 +130,8 @@ export abstract class MusicCommands {
     })
     public leave(bot: Bot, interaction: ChatInputCommandInteraction) {
         const member = interaction.member as GuildMember;
-        const connection = getVoiceConnection(member.voice.guild.id);
-        if (connection) {
-            logger.info('found connection');
+        if (bot.leaveVoiceChannel(member.guild.id)) {
             bot.musicPlayer.stop();
-            connection.destroy();
-        } else {
-            logger.info('could not find connection');
         }
 
         return interaction.followUp('Left channel');

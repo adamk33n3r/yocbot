@@ -1,4 +1,5 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
+import { Guild } from 'discord.js';
 import play, { YouTubeVideo } from 'play-dl';
 import { Bot } from './Bot';
 import logger from './Logger';
@@ -9,6 +10,7 @@ export class MusicPlayer {
     private currentSong?: YouTubeVideo;
     private audioPlayer: AudioPlayer;
     private _volume: number = 0.1;
+    private inactivityTimeout: NodeJS.Timeout | null = null;
 
     public get volume() {
         return this._volume;
@@ -38,7 +40,7 @@ export class MusicPlayer {
         return this.currentSong;
     }
 
-    constructor(private bot: Bot, private guildID: string) {
+    constructor(private bot: Bot, private guildId: string) {
         this.setupSpotify();
         this.setupSoundCloud();
         this.audioPlayer = createAudioPlayer({
@@ -54,6 +56,11 @@ export class MusicPlayer {
                     this.playSong(nextSong);
                 } else {
                     this.bot.clearStatus();
+                    logger.info('Queue is empty, setting inactivity timer');
+                    this.inactivityTimeout = setTimeout(() => {
+                        logger.info('Inactivity timer reached, leaving voice channel');
+                        this.bot.leaveVoiceChannel(this.guildId);
+                    }, 1000 * 60 * 5); // 5 minutes
                 }
             }
         });
@@ -126,7 +133,12 @@ export class MusicPlayer {
     }
 
     private async playSong(song: YouTubeVideo) {
-        const connection = getVoiceConnection(this.guildID);
+        if (this.inactivityTimeout) {
+            logger.info('Clearing inactivity timer');
+            clearTimeout(this.inactivityTimeout);
+            this.inactivityTimeout = null;
+        }
+        const connection = getVoiceConnection(this.guildId);
         if (!connection) {
             console.error('no voice connection!');
             return;
