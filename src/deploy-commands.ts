@@ -10,13 +10,17 @@ import logger from './Logger';
 const argv = yargs.options({
     testbot: { type: 'boolean', default: false },
     commands: { type: 'array', default: [] as string[] },
+    clear: { type: 'boolean', default: false },
 }).parseSync();
 
 const commandLoader = new CommandLoader('commands');
-if (argv.commands.length) {
-    argv.commands.forEach(commandFile => commandLoader.load(commandFile));
-} else {
-    commandLoader.loadAll();
+
+if (!argv.clear) {
+    if (argv.commands.length) {
+        argv.commands.forEach(commandFile => commandLoader.load(commandFile));
+    } else {
+        commandLoader.loadAll();
+    }
 }
 
 const commands = MetadataManager.instance.slashCommands;

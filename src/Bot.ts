@@ -41,6 +41,7 @@ export class Bot {
 
         this.onReady();
         this.onInteractionCreate();
+        this.onVoiceStateUpdate();
 
         // Load commands
         const commandLoader = new CommandLoader('commands');
@@ -145,6 +146,17 @@ export class Bot {
                         components: [],
                     });
                 }
+            }
+        });
+    }
+
+    private onVoiceStateUpdate() {
+        this._client.on('voiceStateUpdate', (before, after) => {
+            // Only bot left
+            const vc = getVoiceConnection(guildId);
+            if (vc && vc.joinConfig.channelId === before.channelId && before.channel?.members.size === 1) {
+                this.musicPlayer.stop();
+                this.leaveVoiceChannel(guildId);
             }
         });
     }
