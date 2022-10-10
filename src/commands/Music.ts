@@ -36,7 +36,7 @@ export abstract class MusicCommands {
         }
 
         return interaction.followUp({
-            content: `🎶 | Queued up **${song.title}**!`,
+            content: song.length === 1 ? `🎶 | Queued up **${song[0].title}**!` : `🎶 | Queued up **${song.length} songs**!`,
             ephemeral: false,
         });
     }

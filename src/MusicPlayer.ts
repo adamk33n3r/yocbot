@@ -66,31 +66,44 @@ export class MusicPlayer {
         });
     }
 
-    public async queue(query: string): Promise<YouTubeVideo | string | undefined> {
+    public async queue(query: string): Promise<YouTubeVideo[] | string | undefined> {
 
         const validation = await play.validate(query);
         logger.info(`validation: ${validation}`);
-        let details: YouTubeVideo;
-        if (!validation) {
-            return 'Source not supported';
-        } else if (validation === 'search') {
-            const results = await this.search(query);
-            if (results.length === 0) {
-                return 'Search returned no results';
+        const videosToPlay: YouTubeVideo[] = [];
+        switch (validation) {
+            case 'search': {
+                const results = await this.search(query);
+                if (results.length === 0) {
+                    return 'Search returned no results';
+                }
+                videosToPlay.push(results[0]);
+                break;
             }
-            details = results[0];
-        } else {
-            const ytInfo = await play.video_info(query);
-            details = ytInfo.video_details;
-            logger.info(`Song from URL: ${ytInfo.video_details.title}`);
+            case 'yt_video': {
+                const ytInfo = await play.video_info(query);
+                videosToPlay.push(ytInfo.video_details);
+                logger.info(`Song from URL: ${ytInfo.video_details.title}`);
+                break;
+            }
+            case 'yt_playlist': {
+                const playlist = await play.playlist_info(query, { incomplete: true });
+                videosToPlay.push(...await playlist.all_videos());
+                break;
+            }
+            default:
+                return 'Source not supported';
         }
+
+        this.songQueue.push(...videosToPlay);
 
         if (this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
             logger.info('player is idle so playing now');
-            this.playSong(details);
-        } else {
-            logger.info('adding song to queue');
-            this.songQueue.push(details);
+            const nextSong = this.songQueue.shift();
+            if (!nextSong) {
+                return 'Unknown error ocurred. Song should have been in queue';
+            }
+            this.playSong(nextSong);
         }
 
 
@@ -98,7 +111,7 @@ export class MusicPlayer {
         //     inlineVolume: true,
         // });
 
-        return details;
+        return videosToPlay;
     }
 
     public async search(query: string, limit: number = 1): Promise<YouTubeVideo[]> {

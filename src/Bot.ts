@@ -142,7 +142,7 @@ export class Bot {
                         return;
                     }
                     await interaction.editReply({
-                        content: `🎶 | Queued up **${song.title}**!`,
+                        content: `🎶 | Queued up **${song[0].title}**!`,
                         components: [],
                     });
                 }
