@@ -47,7 +47,7 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
         MetadataManager.instance.addSlashCommand(target, key, new SlashCommandData({
             name: name,
             description: options?.description ?? name,
-            ownerOnly: options?.ownerOnly,
+            adminOnly: options?.adminOnly,
             roles: options?.roles,
             users: options?.users,
             func: cmdFunc,
@@ -68,7 +68,7 @@ function mapType(typeName: string): ApplicationCommandOptionType {
         case 'textchannel':
             return ApplicationCommandOptionType.Channel;
         default:
-            throw new Error(`Invalid slash option type: ${typeName}`)
+            throw new Error(`Invalid slash option type: ${typeName}`);
     }
 }
 
@@ -83,7 +83,7 @@ export function SlashCommandOption(options: SlashCommandOptionOptions): Paramete
         }
 
         MetadataManager.instance.addSlashCommandOption(target, propertyKey, options as SlashCommandOption);
-   };
+    };
 }
 
 

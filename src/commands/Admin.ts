@@ -7,6 +7,7 @@ import { SlashCommand, SlashCommandOption, SlashCommands } from 'src/types/Comma
 export abstract class AdminCommands {
     @SlashCommand({
         description: 'Move all members in your voice channel to the specified channel',
+        adminOnly: true,
     })
     public async moveAll(
         @SlashCommandOption({

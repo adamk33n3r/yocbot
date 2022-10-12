@@ -1,8 +1,9 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
-import { Guild } from 'discord.js';
+import { DiscordAPIError, EmbedBuilder, Guild } from 'discord.js';
 import play, { YouTubeVideo } from 'play-dl';
 import { Bot } from './Bot';
 import logger from './Logger';
+import localConfig from './local.config.json';
 
 export class MusicPlayer {
 
@@ -55,7 +56,7 @@ export class MusicPlayer {
                 if (nextSong) {
                     this.playSong(nextSong);
                 } else {
-                    this.bot.clearStatus();
+                    this.clearStatus();
                     logger.info('Queue is empty, setting inactivity timer');
                     this.inactivityTimeout = setTimeout(() => {
                         logger.info('Inactivity timer reached, leaving voice channel');
@@ -77,13 +78,18 @@ export class MusicPlayer {
                 if (results.length === 0) {
                     return 'Search returned no results';
                 }
+                logger.info(`Playing first song from search at ${results[0]}:${results[0].likes}`);
                 videosToPlay.push(results[0]);
                 break;
             }
             case 'yt_video': {
-                const ytInfo = await play.video_info(query);
-                videosToPlay.push(ytInfo.video_details);
-                logger.info(`Song from URL: ${ytInfo.video_details.title}`);
+                try {
+                    const ytInfo = await play.video_info(query);
+                    videosToPlay.push(ytInfo.video_details);
+                    logger.info(`Song from URL: ${ytInfo.video_details.title}`);
+                } catch (ex) {
+                    return 'Error fetching video info. Try using /play with search terms';
+                }
                 break;
             }
             case 'yt_playlist': {
@@ -166,8 +172,8 @@ export class MusicPlayer {
         this.currentSong = song;
         this.audioPlayer.play(audio);
         audio.volume?.setVolume(this._volume);
-        const songTitle = song.title ?? 'a song';
-        this.bot.setStatus(songTitle);
+
+        this.updateStatus(song);
     }
 
     private async setupSpotify() {
@@ -179,5 +185,65 @@ export class MusicPlayer {
     private async setupSoundCloud() {
         const soundCloudClientID = await play.getFreeClientID();
         play.setToken({ soundcloud: { client_id: soundCloudClientID } });
+    }
+
+    private async updateStatus(song: YouTubeVideo) {
+        const songTitle = song.title ?? 'a song';
+        this.bot.setStatus(songTitle);
+
+        const statusEmbed = new EmbedBuilder()
+            .setColor(0xF1C40F)
+            .setAuthor({
+                name: song.channel?.name ?? 'Unknown Channel',
+                iconURL: song.channel?.icons ? song.channel.icons[song.channel.icons.length - 1].url : undefined,
+                url: song.channel?.url,
+            })
+            .setTitle(song.title ?? 'Unknown Title')
+            .setURL(song.url)
+            .setImage(song.thumbnails[song.thumbnails.length - 1].url)
+            .addFields(
+                { name: 'Length', value: song.durationRaw },
+            )
+            .setFooter({ text: 'YOC Bot' });
+
+        if (song.live) {
+            statusEmbed.addFields({ name: 'Live', value: '🔴', inline: true });
+        }
+        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId);
+        if (statusChannel?.isTextBased()) {
+            if (statusChannel.lastMessageId) {
+                try {
+                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
+                    await msg.edit({ embeds: [ statusEmbed ] });
+                } catch (ex) {
+                    await statusChannel.send({ embeds: [ statusEmbed ]});
+                }
+            } else {
+                await statusChannel.send({ embeds: [ statusEmbed ]});
+            }
+        }
+    }
+
+    private async clearStatus() {
+        this.bot.clearStatus();
+
+        const statusEmbed = new EmbedBuilder()
+            .setColor(0xF1C40F)
+            .setDescription('Nothing in the queue');
+
+        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId);
+        if (statusChannel?.isTextBased()) {
+            if (statusChannel.lastMessageId) {
+                console.log(statusChannel, statusChannel.lastMessage, statusChannel.lastMessageId);
+                try {
+                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
+                    await msg.edit({ embeds: [ statusEmbed ] });
+                } catch (ex) {
+                    await statusChannel.send({ embeds: [ statusEmbed ]});
+                }
+            } else {
+                await statusChannel.send({ embeds: [ statusEmbed ]});
+            }
+        }
     }
 }

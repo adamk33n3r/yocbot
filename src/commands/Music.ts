@@ -53,7 +53,7 @@ export abstract class MusicCommands {
 
     @SlashCommand({
         description: 'Stops playing music and clears the queue',
-        ownerOnly: true,
+        adminOnly: true,
         guards: [ OnlyRoles('Chum'), MemberMustBeInSameVoiceChannel() ],
     })
     public stop(bot: Bot, interaction: ChatInputCommandInteraction) {

@@ -8,7 +8,7 @@ export interface Options {
     func: (...params: any[]) => Promise<unknown>;
     name: string;
     description: string;
-    ownerOnly?: boolean;
+    adminOnly?: boolean;
     roles?: string[];
     users?: string[];
     guards?: GuardPredicate[];
@@ -72,6 +72,10 @@ export class SlashCommand {
         const builder = new SlashCommandBuilder()
             .setName(this.slashCommandOptions.name)
             .setDescription(this.slashCommandOptions.description);
+
+        if (this.slashCommandOptions.adminOnly) {
+            builder.setDefaultMemberPermissions(0);
+        }
 
         this.options.forEach(opt => {
             switch (opt.type) {
