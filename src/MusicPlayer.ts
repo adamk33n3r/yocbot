@@ -127,7 +127,7 @@ export class MusicPlayer {
     public stop() {
         // Clear queue before stop, otherwise the event would start the next song
         this.clearQueue();
-        this.audioPlayer.stop();
+        this.audioPlayer.stop(true);
     }
 
     public skip() {
