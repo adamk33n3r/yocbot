@@ -201,21 +201,22 @@ export class MusicPlayer {
             .setTitle(song.title ?? 'Unknown Title')
             .setURL(song.url)
             .setImage(song.thumbnails[song.thumbnails.length - 1].url)
-            .addFields(
-                { name: 'Length', value: song.durationRaw },
-            )
             .setFooter({ text: 'YOC Bot' });
 
         if (song.live) {
-            statusEmbed.addFields({ name: 'Live', value: '🔴', inline: true });
+            statusEmbed.addFields({ name: 'Live', value: '🔴' });
+        } else {
+            statusEmbed.addFields({ name: 'Length', value: song.durationRaw });
         }
-        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId);
+
+        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { cache: false });
         if (statusChannel?.isTextBased()) {
             if (statusChannel.lastMessageId) {
                 try {
                     const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
                     await msg.edit({ embeds: [ statusEmbed ] });
                 } catch (ex) {
+                    logger.error(ex);
                     await statusChannel.send({ embeds: [ statusEmbed ]});
                 }
             } else {
@@ -234,7 +235,6 @@ export class MusicPlayer {
         const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId);
         if (statusChannel?.isTextBased()) {
             if (statusChannel.lastMessageId) {
-                console.log(statusChannel, statusChannel.lastMessage, statusChannel.lastMessageId);
                 try {
                     const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
                     await msg.edit({ embeds: [ statusEmbed ] });
