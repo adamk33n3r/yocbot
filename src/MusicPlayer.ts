@@ -209,11 +209,11 @@ export class MusicPlayer {
             statusEmbed.addFields({ name: 'Length', value: song.durationRaw });
         }
 
-        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { cache: false });
+        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { force: true });
         if (statusChannel?.isTextBased()) {
             if (statusChannel.lastMessageId) {
                 try {
-                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
+                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, force: true });
                     await msg.edit({ embeds: [ statusEmbed ] });
                 } catch (ex) {
                     logger.error(ex);
@@ -232,11 +232,11 @@ export class MusicPlayer {
             .setColor(0xF1C40F)
             .setDescription('Nothing in the queue');
 
-        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId);
+        const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { force: true });
         if (statusChannel?.isTextBased()) {
             if (statusChannel.lastMessageId) {
                 try {
-                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, cache: false });
+                    const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, force: true });
                     await msg.edit({ embeds: [ statusEmbed ] });
                 } catch (ex) {
                     await statusChannel.send({ embeds: [ statusEmbed ]});
