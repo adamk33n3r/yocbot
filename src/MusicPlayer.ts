@@ -1,6 +1,6 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
 import { DiscordAPIError, EmbedBuilder, Guild } from 'discord.js';
-import play, { YouTubeVideo } from 'play-dl';
+import play, { YouTubeVideo } from 'play-dl2';
 import { Bot } from './Bot';
 import logger from './Logger';
 import localConfig from './local.config.json';

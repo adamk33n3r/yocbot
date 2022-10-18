@@ -17,6 +17,7 @@ specifiers:
   libsodium-wrappers: ^0.7.10
   node-youtube-music: ^0.7.0
   play-dl: ^1.9.5
+  play-dl2: ^1.9.6
   reflect-metadata: ^0.1.13
   ts-node: ^10.9.1
   tsconfig-paths: ^4.1.0
@@ -38,6 +39,7 @@ dependencies:
   libsodium-wrappers: 0.7.10
   node-youtube-music: 0.7.0
   play-dl: 1.9.5
+  play-dl2: 1.9.6
   reflect-metadata: 0.1.13
   utf-8-validate: 5.0.9
   yargs: 17.6.0
@@ -1949,6 +1951,13 @@ packages:
 
   /play-dl/1.9.5:
     resolution: {integrity: sha512-tfjBgpU6AD63snK6sXiSuAOi+3iLsqVvsFcvCritOetF/zIo2OcB4BURX+WaQLUmEX3sUJhzP/vqG8SSl7WEpA==}
+    engines: {node: '>=16.0.0'}
+    dependencies:
+      play-audio: 0.5.2
+    dev: false
+
+  /play-dl2/1.9.6:
+    resolution: {integrity: sha512-CLx1K5+rIeGFO15OyDD05Uncc7EipLrO2JhbW4+IvopEQUb1z+Cg9ojSp7aVzQUhq/ZHlEnB6G1a+G0gBxT3HQ==}
     engines: {node: '>=16.0.0'}
     dependencies:
       play-audio: 0.5.2
