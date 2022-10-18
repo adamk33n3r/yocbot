@@ -88,7 +88,7 @@ export class Bot {
 
     public joinVoiceChannel(channel: VoiceBasedChannel): VoiceConnection {
         // Reset volume when joining channel in case some crazies left it crazy
-        this._musicPlayer.volume = .1;
+        this._musicPlayer.volume = 0.05;
         return joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,

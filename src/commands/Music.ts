@@ -84,13 +84,13 @@ export abstract class MusicCommands {
     }
 
     @SlashCommand({
-        description: 'Set the global volume (default is 20%)',
+        description: 'Set the global volume (default is 10%)',
         guards: [ OnlyRoles('Chum'), MemberMustBeInSameVoiceChannel(true) ],
     })
     public volume(
         @SlashCommandOption({
             name: 'volume',
-            description: 'Volume percent (default is 20%)',
+            description: 'Volume percent (default is 10%)',
             minValue: 0,
             maxValue: 100,
         })
@@ -181,8 +181,8 @@ export abstract class MusicCommands {
         if (!nowPlaying && queue.length === 0) {
             return interaction.followUp('Nothing in queue');
         }
-        const nowPlayingStr = nowPlaying ? `Now Playing: ${nowPlaying.title}`: '';
-        const queueStr = queue.slice(0, 20).map((s, idx) => `${(idx + 1).toString().padStart(2)}. ${s.title}`).join('\n');
+        const nowPlayingStr = nowPlaying ? `Now Playing: ${nowPlaying.title} - ${nowPlaying.channel?.name}`: '';
+        const queueStr = queue.slice(0, 20).map((s, idx) => `${(idx + 1).toString().padStart(2)}. ${s.title} - ${s.channel?.name}`).join('\n');
 
         return interaction.followUp({
             content: `\`\`\`${nowPlayingStr}\n${queueStr}\`\`\``,

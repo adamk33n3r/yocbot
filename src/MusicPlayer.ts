@@ -10,7 +10,7 @@ export class MusicPlayer {
     private songQueue: YouTubeVideo[] = [];
     private currentSong?: YouTubeVideo;
     private audioPlayer: AudioPlayer;
-    private _volume: number = 0.1;
+    private _volume: number = 0.05;
     private inactivityTimeout: NodeJS.Timeout | null = null;
 
     public get volume() {
