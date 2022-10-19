@@ -58,16 +58,15 @@ export class MusicPlayer {
                 } else {
                     this.clearStatus();
                     logger.info('Queue is empty, setting inactivity timer');
-                    this.inactivityTimeout = setTimeout(() => {
-                        logger.info('Inactivity timer reached, leaving voice channel');
-                        this.bot.leaveVoiceChannel(this.guildId);
-                    }, 1000 * 60 * 5); // 5 minutes
+                    this.startInactivityTimer();
                 }
             }
         });
     }
 
     public async queue(query: string): Promise<YouTubeVideo[] | string | undefined> {
+        // Start inactivity timer if not currently playing, will be cleared if it successfully plays something
+        this.startInactivityTimer();
 
         const validation = await play.validate(query);
         logger.info(`validation: ${validation}`);
@@ -245,5 +244,16 @@ export class MusicPlayer {
                 await statusChannel.send({ embeds: [ statusEmbed ]});
             }
         }
+    }
+
+    private startInactivityTimer() {
+        if (this.audioPlayer.state.status !== AudioPlayerStatus.Idle) {
+            return;
+        }
+
+        this.inactivityTimeout = setTimeout(() => {
+            logger.info('Inactivity timer reached, leaving voice channel');
+            this.bot.leaveVoiceChannel(this.guildId);
+        }, 1000 * 60 * 5); // 5 minutes
     }
 }
