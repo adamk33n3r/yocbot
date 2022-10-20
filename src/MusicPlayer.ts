@@ -251,6 +251,10 @@ export class MusicPlayer {
             return;
         }
 
+        if (this.inactivityTimeout) {
+            clearTimeout(this.inactivityTimeout);
+        }
+
         this.inactivityTimeout = setTimeout(() => {
             logger.info('Inactivity timer reached, leaving voice channel');
             this.bot.leaveVoiceChannel(this.guildId);
