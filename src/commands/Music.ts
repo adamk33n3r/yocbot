@@ -157,7 +157,7 @@ export abstract class MusicCommands {
                 .setCustomId('search-song-select')
                 .setPlaceholder('Select song to play')
                 .setOptions(results.map((song, idx) => ({
-                    label: `${idx + 1}. ${song.live ? '🔴 ' : ''}${(song.title || 'No title found')}`.substring(0, 100),
+                    label: `${idx + 1}. ${song.live ? '🔴 ' : `(${song.durationRaw})`}${(song.title || 'No title found')}`.substring(0, 100),
                     description: song.channel ? `${song.channel.name} ${song.channel.artist ? '🎵' : ''}` : 'No channel name found',
                     value: song.url || '',
                 }))),
