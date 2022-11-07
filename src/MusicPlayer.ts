@@ -1,6 +1,6 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
 import { DiscordAPIError, EmbedBuilder, Guild } from 'discord.js';
-import play, { YouTubeVideo } from 'play-dl2';
+import play, { YouTubeVideo } from 'play-dl';
 import { Bot } from './Bot';
 import logger from './Logger';
 import localConfig from './local.config.json';
@@ -37,6 +37,14 @@ export class MusicPlayer {
         return this.songQueue.slice();
     }
 
+    /**
+     * Removes a song from the queue
+     * @param num 1-based index
+     */
+    public removeSongFromQueue(num: number) {
+        this.songQueue.splice(num - 1, 1);
+    }
+
     public getNowPlaying() {
         return this.currentSong;
     }
@@ -64,7 +72,7 @@ export class MusicPlayer {
         });
     }
 
-    public async queue(query: string): Promise<YouTubeVideo[] | string | undefined> {
+    public async queue(query: string, toFront: boolean = false): Promise<YouTubeVideo[] | string | undefined> {
         // Start inactivity timer if not currently playing, will be cleared if it successfully plays something
         this.startInactivityTimer();
 
@@ -77,6 +85,9 @@ export class MusicPlayer {
                 if (results.length === 0) {
                     return 'Search returned no results';
                 }
+                const cmp = <T>(a: T, b: T) => a === b ? 0 : a ? -1 : 1;
+                results.sort((a, b) => cmp(a.channel?.name?.endsWith('- Topic'), b.channel?.name?.endsWith('- Topic')))
+                    .sort((a, b) => cmp(a.channel?.artist, b.channel?.artist));
                 logger.info(`Playing first song from search at ${results[0]}:${results[0].likes}`);
                 videosToPlay.push(results[0]);
                 break;
@@ -100,7 +111,11 @@ export class MusicPlayer {
                 return 'Source not supported';
         }
 
-        this.songQueue.push(...videosToPlay);
+        if (toFront) {
+            this.songQueue.unshift(...videosToPlay);
+        } else {
+            this.songQueue.push(...videosToPlay);
+        }
 
         if (this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
             logger.info('player is idle so playing now');

@@ -26,7 +26,7 @@ export interface Type<T> extends Function {
 type SlashCommandOptions = Partial<Omit<BaseSlashCommandOptions, 'func'>>;
 export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
     return function(target: Record<string, () => Promise<unknown>>, key: string, descriptor: PropertyDescriptor) {
-        const name = (options?.name ?? key.toString()).toLowerCase();
+        const name = options?.name ?? key.toString().toLowerCase();
         if (!/^[\p{Ll}\p{Lm}\p{Lo}\p{N}\p{sc=Devanagari}\p{sc=Thai}_-]+$/u.test(name)) {
             throw new Error(`Name of command '${name}' is not valid`);
         }
@@ -45,7 +45,7 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
 
         const cmdFunc = target[key];
         MetadataManager.instance.addSlashCommand(target, key, new SlashCommandData({
-            name: name,
+            name,
             description: options?.description ?? name,
             adminOnly: options?.adminOnly,
             roles: options?.roles,
@@ -75,6 +75,9 @@ function mapType(typeName: string): ApplicationCommandOptionType {
 type SlashCommandOptionOptions = Omit<SlashCommandOption, 'type'> & Partial<Pick<SlashCommandOption, 'type'>>;
 export function SlashCommandOption(options: SlashCommandOptionOptions): ParameterDecoratorEx {
     return function(target: Record<string, unknown>, propertyKey: string, parameterIndex: number) {
+        if (!/^[\p{Ll}\p{Lm}\p{Lo}\p{N}\p{sc=Devanagari}\p{sc=Thai}_-]+$/u.test(options.name)) {
+            throw new Error(`Name of command option '${options.name}' is not valid`);
+        }
         if (!options.type) {
             const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey);
             const paramType = paramTypes[parameterIndex] as () => unknown;

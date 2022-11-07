@@ -9,7 +9,7 @@ import logger from '../Logger';
 @SlashCommands()
 export abstract class MusicCommands {
     @SlashCommand({
-        description: 'Play a song in your channel',
+        description: 'Play a song in your channel. Adds it to the queue',
         guards: [ OnlyRoles('Chum'), MemberMustBeInVoiceChannel, MemberMustBeInSameVoiceChannel() ],
     })
     public async play(
@@ -20,13 +20,11 @@ export abstract class MusicCommands {
     ): Promise<unknown> {
         logger.info(`running play command: ${urlOrSearch}`);
         const member = interaction.member as GuildMember;
-        // TODO: check if youre in the SAME channel
-        if (!member?.voice?.channel) {
-            return interaction.followUp('You must be in a voice channel to use this command');
-        }
         const connection = getVoiceConnection(member.voice.guild.id);
         if (!connection) {
-            bot.joinVoiceChannel(member.voice.channel);
+            // We can do this because of the MemberMustBeInVoiceChannel guard
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            bot.joinVoiceChannel(member.voice.channel!);
         }
 
         const song = await bot.musicPlayer.queue(urlOrSearch);
@@ -38,6 +36,35 @@ export abstract class MusicCommands {
         return interaction.followUp({
             content: song.length === 1 ? `🎶 | Queued up **${song[0].title} (${song[0].durationRaw})**!` : `🎶 | Queued up **${song.length} songs**!`,
             ephemeral: false,
+        });
+    }
+    @SlashCommand({
+        description: 'Adds a song to the beginning of the queue',
+        guards: [ OnlyRoles('Chum'), MemberMustBeInVoiceChannel, MemberMustBeInSameVoiceChannel() ],
+    })
+    public async playNext(
+        @SlashCommandOption({ name: 'query', description: 'YouTube URL or search terms', required: true })
+        urlOrSearch: string,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ): Promise<unknown> {
+        logger.info(`running playNext command: ${urlOrSearch}`);
+        const member = interaction.member as GuildMember;
+        const connection = getVoiceConnection(member.voice.guild.id);
+        if (!connection) {
+            // We can do this because of the MemberMustBeInVoiceChannel guard
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            bot.joinVoiceChannel(member.voice.channel!);
+        }
+
+        const song = await bot.musicPlayer.queue(urlOrSearch, true);
+
+        if (!song || typeof song === 'string') {
+            return interaction.followUp(song || 'Could not find song');
+        }
+
+        return interaction.followUp({
+            content: song.length === 1 ? `🎶 | Queued up **${song[0].title} (${song[0].durationRaw})** next!` : `🎶 | Queued up **${song.length} songs** next!`,
         });
     }
 
@@ -149,7 +176,12 @@ export abstract class MusicCommands {
     ) {
         logger.info(`Search Query: ${query}`);
 
-        const results = await bot.musicPlayer.search(query, 5);
+        const numberToSearch = 10;
+
+        const results = await bot.musicPlayer.search(query, numberToSearch);
+        const cmp = <T>(a: T, b: T) => a === b ? 0 : a ? -1 : 1;
+        results.sort((a, b) => cmp(a.channel?.name?.endsWith('- Topic'), b.channel?.name?.endsWith('- Topic')))
+            .sort((a, b) => cmp(a.channel?.artist, b.channel?.artist));
         logger.info(results.length + ' results');
 
         const selectRow = new ActionRowBuilder<SelectMenuBuilder>()
@@ -164,7 +196,7 @@ export abstract class MusicCommands {
             );
 
         return interaction.followUp({
-            content: 'Showing top 5 results...',
+            content: `Showing top ${numberToSearch} results...`,
             components: [ selectRow ],
         });
     }
@@ -199,5 +231,24 @@ export abstract class MusicCommands {
         }
 
         return interaction.followUp(`${nowPlaying.title}\n${nowPlaying.url}`);
+    }
+
+    @SlashCommand({
+        description: 'Removes a song from the queue',
+        guards: [ OnlyRoles('Chum'), MemberMustBeInVoiceChannel, MemberMustBeInSameVoiceChannel() ],
+    })
+    public async removeSong(
+        @SlashCommandOption({ name: 'songnum', description: 'The place in the queue for the song you want to remove', required: true })
+        songNumber: number,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        if (songNumber < 1 || songNumber > bot.musicPlayer.getQueue().length) {
+            return interaction.followUp('Out of range');
+        }
+
+        bot.musicPlayer.removeSongFromQueue(songNumber);
+
+        return interaction.followUp(`Removed song #${songNumber}`);
     }
 }

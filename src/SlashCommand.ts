@@ -49,9 +49,9 @@ export class SlashCommand {
         // this.slashCommandOptions.funcParams.map(fp => {
         //     if (fp === Bot)
         // });
-        logger.info(this.options);
-        logger.info(this.parseParams(interaction));
-        logger.info(this.slashCommandOptions.guards);
+        logger.debug(this.options);
+        logger.debug(this.parseParams(interaction));
+        logger.debug(this.slashCommandOptions.guards?.length);
         for (const guard of this.slashCommandOptions.guards || []) {
             const failed = guard(bot, interaction);
             if (failed) {
