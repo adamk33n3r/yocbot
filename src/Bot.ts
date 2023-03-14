@@ -89,23 +89,11 @@ export class Bot {
     public joinVoiceChannel(channel: VoiceBasedChannel): VoiceConnection {
         // Reset volume when joining channel in case some crazies left it crazy
         this._musicPlayer.volume = 0.05;
-        const connection = joinVoiceChannel({
+        return joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
-
-        // Discord bug workaround https://github.com/discordjs/discord.js/issues/9185#issuecomment-1459083216
-        const networkStateChangeHandler = (oldNetworkState: any, newNetworkState: any) => {
-            const newUdp = Reflect.get(newNetworkState, 'udp');
-            clearInterval(newUdp?.keepAliveInterval);
-        };
-        connection.on('stateChange', async (oldState, newState) => {
-            Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
-            Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
-        });
-
-        return connection;
     }
 
     public leaveVoiceChannel(guildId: string): boolean {
