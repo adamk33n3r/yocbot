@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, ChannelType } from 'discord.js';
 import { MetadataManager } from 'src/MetadataManager';
 import { Options as BaseSlashCommandOptions, SlashCommand as SlashCommandData, SlashCommandOption } from 'src/SlashCommand';
-import { MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
+import { ClassDecoratorEx, ConstructorType, MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
 
 // export function Restricted(roles: Snowflake[] = [], users: Snowflake[] = []): ClassDecorator {
 //     return setMetaData('restricted', { roles, users });
@@ -46,6 +46,14 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
             // funcParams: mappedTypes,
         }));
         return descriptor;
+    };
+}
+export function SlashCommandGroup(name: string) {
+    return function(target: any) {
+        console.log(target, typeof target);
+        console.log('slash command group', name);
+        // MetadataManager.instance.addSlashCommandGroup(name);
+        target._slashCommandGroup = name;
     };
 }
 

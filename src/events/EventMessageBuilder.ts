@@ -124,6 +124,6 @@ export class EventMessageBuilder {
         //     .setLabel('Create')
         //     .setURL('https://yoc.gg/events/37482405992438273');
 
-        return { content: onlyEmbed ? '**Event Scheduled!**' : '**Schedule Event**', components, embeds: [embed] };
+        return { content: (onlyEmbed ? '**Event Scheduled!**' : '**Schedule Event**') + `: ${partialEvent.id}`, components, embeds: [embed] };
     }
 }

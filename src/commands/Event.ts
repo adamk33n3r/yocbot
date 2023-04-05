@@ -3,9 +3,11 @@ import { Bot } from 'src/Bot';
 import { EventManager } from 'src/events/EventManager';
 import { EventMessageBuilder } from 'src/events/EventMessageBuilder';
 import logger from 'src/Logger';
-import { SlashCommand, SlashCommandOption } from 'src/types/CommandDecorators';
+import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
+@SlashCommandGroup('event')
 export abstract class EventCommands {
+    // private constructor() {}
     @SlashCommand({
         description: 'Create an event',
     })
@@ -56,5 +58,25 @@ export abstract class EventCommands {
         logger.info('created event:', partialEvent);
 
         return interaction.followUp(EventMessageBuilder.buildMessage(partialEvent));
+    }
+
+    @SlashCommand({
+        description: 'Edit an event',
+    })
+    public async edit(
+        @SlashCommandOption({
+            name: 'id',
+            description: 'ID of event',
+            required: true,
+        })
+        id: string,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        const event = await EventManager.getInstance().getEvent(id);
+        if (!event) {
+            return interaction.followUp(`Could not find event with id: ${id}`);
+        }
+        return interaction.followUp(EventMessageBuilder.buildMessage(event));
     }
 }

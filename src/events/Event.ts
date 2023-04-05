@@ -94,7 +94,6 @@ export class Event implements IEventData {
     };
 
     private constructor(data: IEventData) {
-        console.log('INSTANTIATE EVENT', data.id, data.name);
         this.id = data.id;
         this.name = data.name;
         this.partial = data.partial;

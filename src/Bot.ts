@@ -302,149 +302,169 @@ export class Bot {
 
     private onInteractionCreate() {
         this._client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-            if (interaction.isChatInputCommand()) {
-                await this.handleSlashCommand(interaction);
-            } else if (interaction.isStringSelectMenu()) {
-                logger.debug('String Select:', interaction.customId);
-                if (interaction.customId === 'search-song-select') {
-                    await interaction.deferUpdate();
+            try {
+                if (interaction.isChatInputCommand()) {
+                    await this.handleSlashCommand(interaction);
+                } else if (interaction.isStringSelectMenu()) {
+                    logger.debug('String Select:', interaction.customId);
+                    if (interaction.customId === 'search-song-select') {
+                        await interaction.deferUpdate();
 
-                    const member = interaction.member as GuildMember;
-                    // TODO: check if youre in the SAME channel
-                    if (!member?.voice?.channel) {
-                        await interaction.update('You must be in a voice channel to use this command');
-                        return;
-                    }
-                    const connection = getVoiceConnection(member.voice.guild.id);
-                    if (!connection) {
-                        this.joinVoiceChannel(member.voice.channel);
-                    }
-                    const songURL = interaction.values[0];
-                    logger.info(`Selected ${songURL} from the list`);
-                    const song = await this.musicPlayer.queue(songURL);
-                    if (!song || typeof song === 'string') {
-                        await interaction.update(song || 'An error occurred');
-                        return;
-                    }
-                    await interaction.editReply({
-                        content: `🎶 | Queued up **${song[0].title}**!`,
-                        components: [],
-                    });
-                } else if (interaction.customId.startsWith('schedule:')) {
-                    const matches = interaction.customId.match(/schedule:(\w+):(\w+)/);
-                    if (!matches) {
-                        throw new Error(`Could not parse schedule select: ${interaction.customId}`);
-                    }
-                    const [_, propName, eventId] = matches;
-                    const partialEvent = await EventManager.getInstance().getEvent(eventId);
-                    if (!partialEvent) {
-                        throw new Error(`Could not find event with id: ${eventId}`);
-                    }
-                    if (propName === 'recurringType') {
-                        partialEvent.recurringType = Number.parseInt(interaction.values[0]);
-                    } else if (propName === 'recurringDays') {
-                        partialEvent.recurringDays = interaction.values.reduce((acc, d) => acc | Number.parseInt(d), 0);
-                    }
-                    await EventManager.getInstance().updateEvent(partialEvent);
-                    await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
-                }
-            } else if (interaction.isButton()) {
-                logger.debug('Button:', interaction.customId);
-                if (interaction.customId.startsWith('schedule')) {
-                    const command = interaction.customId.substring('schedule:'.length);
-                    if (command.startsWith('modal')) {
-                        const matches = command.match(/modal:(\w+):(\w+)/);
+                        const member = interaction.member as GuildMember;
+                        // TODO: check if youre in the SAME channel
+                        if (!member?.voice?.channel) {
+                            await interaction.update('You must be in a voice channel to use this command');
+                            return;
+                        }
+                        const connection = getVoiceConnection(member.voice.guild.id);
+                        if (!connection) {
+                            this.joinVoiceChannel(member.voice.channel);
+                        }
+                        const songURL = interaction.values[0];
+                        logger.info(`Selected ${songURL} from the list`);
+                        const song = await this.musicPlayer.queue(songURL);
+                        if (!song || typeof song === 'string') {
+                            await interaction.update(song || 'An error occurred');
+                            return;
+                        }
+                        await interaction.editReply({
+                            content: `🎶 | Queued up **${song[0].title}**!`,
+                            components: [],
+                        });
+                    } else if (interaction.customId.startsWith('schedule:')) {
+                        const matches = interaction.customId.match(/schedule:(\w+):(\w+)/);
                         if (!matches) {
-                            throw new Error(`Could not parse modal command: ${command}`);
-                        }
-                        const [_, modalName, eventId] = matches;
-                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
-                        if (!partialEvent) {
-                            throw new Error(`Could not find event with id: ${eventId}`);
-                        }
-                        let modal: ModalBuilder | undefined;
-                        switch (modalName) {
-                            case 'info':
-                                modal = new InfoModal(partialEvent).modal;
-                                break;
-                            case 'schedule':
-                                modal = new ScheduleModal(partialEvent).modal;
-                                break;
-                        }
-                        // if (modalName === 'schedule') {
-                        //     // interaction.awaitModalSubmit({ time: 60_000, filter: m => m.user.id === interaction.user.id && m.customId === interaction.customId })
-                        //     //     .then(async (modalSubmitInteraction) => {
-                        //     //         ScheduleModal.processDate(partialEvent, modalSubmitInteraction);
-                        //     //         await EventManager.getInstance().updateEvent(partialEvent);
-                        //     //         if (modalSubmitInteraction.isFromMessage()) {
-                        //     //             await modalSubmitInteraction.update(EventMessageBuilder.buildMessage(partialEvent));
-                        //     //         }
-                        //     //     });
-                        // }
-                        if (modal)
-                            await interaction.showModal(modal);
-                    } else if (command.startsWith('toggle:')) {
-                        const matches = command.match(/toggle:(\w+):(\w+)/);
-                        if (!matches) {
-                            throw new Error(`Could not parse update command: ${command}`);
+                            throw new Error(`Could not parse schedule select: ${interaction.customId}`);
                         }
                         const [_, propName, eventId] = matches;
                         const partialEvent = await EventManager.getInstance().getEvent(eventId);
                         if (!partialEvent) {
                             throw new Error(`Could not find event with id: ${eventId}`);
                         }
-                        logger.debug(`Toggling propname (${propName}) from ${partialEvent[propName]}`);
-                        partialEvent[propName] = !partialEvent[propName];
+                        if (propName === 'recurringType') {
+                            partialEvent.recurringType = Number.parseInt(interaction.values[0]);
+                        } else if (propName === 'recurringDays') {
+                            partialEvent.recurringDays = interaction.values.reduce((acc, d) => acc | Number.parseInt(d), 0);
+                        }
                         await EventManager.getInstance().updateEvent(partialEvent);
                         await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
-                    } else if (command.startsWith('cancel:')) {
-                        //
-                    } else if (command.startsWith('create:')) {
-                        const matches = command.match(/create:(\w+)/);
-                        if (!matches) {
-                            throw new Error(`Could not parse update command: ${command}`);
-                        }
-                        const [_, eventId] = matches;
-                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
-                        if (!partialEvent) {
-                            throw new Error(`Could not find event with id: ${eventId}`);
-                        }
-                        await EventManager.getInstance().finishEventCreation(this.guild.scheduledEvents, partialEvent);
-                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent, true));
                     }
-                }
-            } else if (interaction.isModalSubmit()) {
-                logger.debug(`got modal submit: ${interaction.customId}`);
-                // Schedule modal - date/time/recurring
-                if (interaction.customId.startsWith('schedule')) {
-                    const command = interaction.customId.substring('schedule:'.length);
-                    if (command.startsWith('modal')) {
-                        const matches = interaction.customId.match(/modal:(\w+):(\w+)/);
-                        if (!matches) {
-                            throw new Error(`Could not parse modal submit command: ${interaction.customId}`);
-                        }
-                        const [_, modalName, eventId] = matches;
-                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
-                        if (!partialEvent) {
-                            throw new Error(`Could not find event with id: ${eventId}`);
-                        }
-                        // TODO: use modalName to get the class and access static constants for values maybe?
-                        // Or add methods to teh modal class to parse the data and edit the event
-                        switch (modalName) {
-                            case 'info':
-                                InfoModal.processData(partialEvent, interaction);
-                                break;
-                            case 'schedule':
-                                ScheduleModal.processData(partialEvent, interaction);
-                                break;
-                        }
-                        await EventManager.getInstance().updateEvent(partialEvent);
-                        if (interaction.isFromMessage())
+                } else if (interaction.isButton()) {
+                    logger.debug('Button:', interaction.customId);
+                    if (interaction.customId.startsWith('schedule')) {
+                        const command = interaction.customId.substring('schedule:'.length);
+                        if (command.startsWith('modal')) {
+                            const matches = command.match(/modal:(\w+):(\w+)/);
+                            if (!matches) {
+                                throw new Error(`Could not parse modal command: ${command}`);
+                            }
+                            const [_, modalName, eventId] = matches;
+                            const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                            if (!partialEvent) {
+                                throw new Error(`Could not find event with id: ${eventId}`);
+                            }
+                            let modal: ModalBuilder | undefined;
+                            switch (modalName) {
+                                case 'info':
+                                    modal = new InfoModal(partialEvent).modal;
+                                    break;
+                                case 'schedule':
+                                    modal = new ScheduleModal(partialEvent).modal;
+                                    break;
+                            }
+                            // if (modalName === 'schedule') {
+                            //     // interaction.awaitModalSubmit({ time: 60_000, filter: m => m.user.id === interaction.user.id && m.customId === interaction.customId })
+                            //     //     .then(async (modalSubmitInteraction) => {
+                            //     //         ScheduleModal.processDate(partialEvent, modalSubmitInteraction);
+                            //     //         await EventManager.getInstance().updateEvent(partialEvent);
+                            //     //         if (modalSubmitInteraction.isFromMessage()) {
+                            //     //             await modalSubmitInteraction.update(EventMessageBuilder.buildMessage(partialEvent));
+                            //     //         }
+                            //     //     });
+                            // }
+                            if (modal)
+                                await interaction.showModal(modal);
+                        } else if (command.startsWith('toggle:')) {
+                            const matches = command.match(/toggle:(\w+):(\w+)/);
+                            if (!matches) {
+                                throw new Error(`Could not parse update command: ${command}`);
+                            }
+                            const [_, propName, eventId] = matches;
+                            const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                            if (!partialEvent) {
+                                throw new Error(`Could not find event with id: ${eventId}`);
+                            }
+                            logger.debug(`Toggling propname (${propName}) from ${partialEvent[propName]}`);
+                            partialEvent[propName] = !partialEvent[propName];
+                            await EventManager.getInstance().updateEvent(partialEvent);
                             await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                        } else if (command.startsWith('cancel:')) {
+                            const matches = command.match(/cancel:(\w+)/);
+                            if (!matches) {
+                                throw new Error(`Could not parse cancel command: ${command}`);
+                            }
+                            const [_, eventId] = matches;
+                            const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                            if (!partialEvent) {
+                                throw new Error(`Could not find event with id: ${eventId}`);
+                            }
+                            await EventManager.getInstance().deleteEvent(partialEvent);
+                            await interaction.update({
+                                content: 'Canceled event creation. You can dismiss this message.',
+                                attachments: [],
+                                embeds: [],
+                                components: [],
+                            });
+                        } else if (command.startsWith('create:')) {
+                            const matches = command.match(/create:(\w+)/);
+                            if (!matches) {
+                                throw new Error(`Could not parse create command: ${command}`);
+                            }
+                            const [_, eventId] = matches;
+                            const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                            if (!partialEvent) {
+                                throw new Error(`Could not find event with id: ${eventId}`);
+                            }
+                            await EventManager.getInstance().finishEventCreation(this.guild.scheduledEvents, partialEvent);
+                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent, true));
+                        }
                     }
+                } else if (interaction.isModalSubmit()) {
+                    logger.debug(`got modal submit: ${interaction.customId}`);
+                    // Schedule modal - date/time/recurring
+                    if (interaction.customId.startsWith('schedule')) {
+                        const command = interaction.customId.substring('schedule:'.length);
+                        if (command.startsWith('modal')) {
+                            const matches = interaction.customId.match(/modal:(\w+):(\w+)/);
+                            if (!matches) {
+                                throw new Error(`Could not parse modal submit command: ${interaction.customId}`);
+                            }
+                            const [_, modalName, eventId] = matches;
+                            const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                            if (!partialEvent) {
+                                throw new Error(`Could not find event with id: ${eventId}`);
+                            }
+                            // TODO: use modalName to get the class and access static constants for values maybe?
+                            // Or add methods to teh modal class to parse the data and edit the event
+                            switch (modalName) {
+                                case 'info':
+                                    InfoModal.processData(partialEvent, interaction);
+                                    break;
+                                case 'schedule':
+                                    ScheduleModal.processData(partialEvent, interaction);
+                                    break;
+                            }
+                            await EventManager.getInstance().updateEvent(partialEvent);
+                            if (interaction.isFromMessage())
+                                await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                        }
+                    }
+                } else {
+                    logger.debug(`Unhandled interaction event: ${interaction.type}`);
                 }
-            } else {
-                logger.debug(`Unhandled interaction event: ${interaction.type}`);
+            } catch (e) {
+                console.error(e);
+                logger.error('Error occurred in interaction handler:', e);
             }
         });
     }
