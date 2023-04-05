@@ -39,6 +39,6 @@ export class MetadataManager {
     }
 
     public addSlashCommandOption(target: Record<string, unknown>, key: string, slashCommandOption: SlashCommandOption) {
-        this._slashCommandsOptions.push({ target, key, slashCommandOption });
+        this._slashCommandsOptions.unshift({ target, key, slashCommandOption });
     }
 }

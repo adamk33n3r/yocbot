@@ -1,9 +1,7 @@
-import { getVoiceConnection } from '@discordjs/voice';
-import { ApplicationCommandOptionType, CacheType, ChatInputCommandInteraction, GuildMember, Snowflake } from 'discord.js';
-import { Bot } from 'src/Bot';
+import { ApplicationCommandOptionType, ChannelType } from 'discord.js';
 import { MetadataManager } from 'src/MetadataManager';
 import { Options as BaseSlashCommandOptions, SlashCommand as SlashCommandData, SlashCommandOption } from 'src/SlashCommand';
-import { ClassDecoratorEx, MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
+import { MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
 
 // export function Restricted(roles: Snowflake[] = [], users: Snowflake[] = []): ClassDecorator {
 //     return setMetaData('restricted', { roles, users });
@@ -11,13 +9,6 @@ import { ClassDecoratorEx, MethodDecoratorEx, ParameterDecoratorEx } from './Dec
 // export function OwnerOnly(): ClassDecorator {
 //     return setMetaData('ownerOnly', true);
 // }
-
-export function SlashCommands(): ClassDecoratorEx {
-    // logger.info('slashCommands decorator parent');
-    return function(target: Record<string, unknown>) {
-        // logger.info('slashCommands decorator');
-    };
-}
 
 export const Type = Function;
 export interface Type<T> extends Function {
@@ -31,17 +22,17 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
             throw new Error(`Name of command '${name}' is not valid`);
         }
         // const cmdFunc = (target as Record<string | symbol, () => Promise<unknown>>)[key];
-        const paramTypes = Reflect.getMetadata('design:paramtypes', target, key) as (Type<unknown>)[];
-        paramTypes.filter(t => !(t === Bot || t === ChatInputCommandInteraction));
-        const mappedTypes = paramTypes.map((t) => {
-            if (t === Bot) {
-                return Bot;
-            } else if (t === ChatInputCommandInteraction) {
-                return ChatInputCommandInteraction;
-            }
+        // const paramTypes = Reflect.getMetadata('design:paramtypes', target, key) as (Type<unknown>)[];
+        // paramTypes.filter(t => !(t === Bot || t === ChatInputCommandInteraction));
+        // const mappedTypes = paramTypes.map((t, i) => {
+        //     if (t === Bot) {
+        //         return Bot;
+        //     } else if (t === ChatInputCommandInteraction) {
+        //         return ChatInputCommandInteraction;
+        //     }
 
-            return { type: mapType(t.name.toLowerCase()) };
-        });
+        //     return { type: mapType(t.name.toLowerCase()) };
+        // });
 
         const cmdFunc = target[key];
         MetadataManager.instance.addSlashCommand(target, key, new SlashCommandData({
@@ -67,8 +58,10 @@ function mapType(typeName: string): ApplicationCommandOptionType {
         case 'voicechannel':
         case 'textchannel':
             return ApplicationCommandOptionType.Channel;
+        case 'attachment':
+            return ApplicationCommandOptionType.Attachment;
         default:
-            throw new Error(`Invalid slash option type: ${typeName}`);
+            throw new Error(`Invalid slash option type for: ${typeName}`);
     }
 }
 
@@ -78,11 +71,24 @@ export function SlashCommandOption(options: SlashCommandOptionOptions): Paramete
         if (!/^[\p{Ll}\p{Lm}\p{Lo}\p{N}\p{sc=Devanagari}\p{sc=Thai}_-]+$/u.test(options.name)) {
             throw new Error(`Name of command option '${options.name}' is not valid`);
         }
+        const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey);
+        const paramType = paramTypes[parameterIndex] as () => unknown;
         if (!options.type) {
-            const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey);
-            const paramType = paramTypes[parameterIndex] as () => unknown;
-            const mappedType = mapType(paramType.name.toLowerCase());
-            options.type = mappedType;
+            try {
+                const mappedType = mapType(paramType.name.toLowerCase());
+                options.type = mappedType;
+            } catch (e) {
+                console.error(`Error mapping type for: ${options.name}`);
+                throw e;
+            }
+        }
+        if (options.type === ApplicationCommandOptionType.Channel && !options.channelTypes) {
+            const paramTypeName = paramType.name.toLowerCase();
+            if (paramTypeName === 'voicechannel') {
+                options.channelTypes = [ ChannelType.GuildVoice, ChannelType.GuildStageVoice ];
+            } else if (paramTypeName === 'textchannel') {
+                options.channelTypes = [ ChannelType.GuildText ];
+            }
         }
 
         MetadataManager.instance.addSlashCommandOption(target, propertyKey, options as SlashCommandOption);

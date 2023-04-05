@@ -26,8 +26,18 @@ rules:
   semi:
     - error
     - always
+  '@typescript-eslint/no-unused-vars':
+    - warn
+    - ignoreRestSiblings: true
+      argsIgnorePattern: '^_'
+      varsIgnorePattern: '^_'
   '@typescript-eslint/no-inferrable-types':
     - off
+  '@typescript-eslint/no-empty-function':
+    - error
+    - allow:
+        - 'private-constructors'
+        - 'protected-constructors'
   '@typescript-eslint/indent':
     - error
     - 4

@@ -1,5 +1,6 @@
-export type ClassDecoratorEx = (
-    target: Record<string, any>,
+export type ConstructorType<T> = new (...args : any[]) => T;
+export type ClassDecoratorEx<T> = (
+    target: ConstructorType<T>,
 ) => void;
 
 export type PropertyDecorator = (

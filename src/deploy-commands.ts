@@ -9,7 +9,7 @@ import logger from './Logger';
 
 const argv = yargs.options({
     testbot: { type: 'boolean', default: false },
-    commands: { type: 'array', default: [] as string[] },
+    commands: { type: 'array', string: true, default: [] as string[] },
     clear: { type: 'boolean', default: false },
 }).parseSync();
 

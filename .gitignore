@@ -4,3 +4,4 @@ dist/
 local.config.json
 .data/
 *.log
+.firestore-creds.json

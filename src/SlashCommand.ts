@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionAllowedChannelTypes, ApplicationCommandOptionType, ChatInputCommandInteraction, RESTPostAPIApplicationCommandsJSONBody, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandNumberOption, SlashCommandStringOption } from 'discord.js';
+import { ApplicationCommandOptionAllowedChannelTypes, ApplicationCommandOptionType, ChatInputCommandInteraction, RESTPostAPIApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandNumberOption, SlashCommandStringOption } from 'discord.js';
 import { Bot } from './Bot';
 import logger from './Logger';
 
@@ -96,6 +96,9 @@ export class SlashCommand {
                 case ApplicationCommandOptionType.Channel:
                     builder.addChannelOption(new SlashCommandChannelOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false).addChannelTypes(...opt.channelTypes ?? []));
                     break;
+                case ApplicationCommandOptionType.Attachment:
+                    builder.addAttachmentOption(new SlashCommandAttachmentOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
+                    break;
             }
         });
         return builder.toJSON();
@@ -110,6 +113,8 @@ export class SlashCommand {
                     return interaction.options.getNumber(opt.name) ?? undefined;
                 case ApplicationCommandOptionType.Channel:
                     return interaction.options.getChannel(opt.name) ?? undefined;
+                case ApplicationCommandOptionType.Attachment:
+                    return interaction.options.getAttachment(opt.name) ?? undefined;
                 default:
                     logger.error(`Unhandled command option type ${opt.type}`);
                     break;

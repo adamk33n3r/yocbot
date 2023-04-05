@@ -1,18 +1,29 @@
 import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
-import { ActivityType, ChatInputCommandInteraction, Client, GatewayIntentBits, Guild, GuildMember, Interaction, Options, VoiceBasedChannel } from 'discord.js';
-import { readdirSync } from 'fs';
-import path from 'path';
-import { guildId } from './local.config.json';
-import { CommandLoader } from './CommandLoader';
-import { MetadataManager } from './MetadataManager';
+import { isAfter, isSameDay, subHours } from 'date-fns';
+import { ActivityType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Guild, GuildMember, Interaction, ModalBuilder, Options, VoiceBasedChannel } from 'discord.js';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import * as cron from 'node-cron';
 
+import { CommandLoader } from './CommandLoader';
+import { EventService } from './database/EventService';
+import { EventManager } from './events/EventManager';
+import { EventMessageBuilder } from './events/EventMessageBuilder';
+import { guildId } from './local.config.json';
+import logger from './Logger';
+import { MetadataManager } from './MetadataManager';
+import { ScheduleModal } from './modals/ScheduleModal';
 import { MusicPlayer } from './MusicPlayer';
 import { SlashCommand } from './SlashCommand';
-import logger from './Logger';
+import { InfoModal } from './modals/InfoModal';
 
 // logger.info(generateDependencyReport());
 
 export class Bot {
+    private static _instance: Bot;
+    public static getInstance(): Bot {
+        return this._instance;
+    }
     private _musicPlayer: MusicPlayer = new MusicPlayer(this, guildId);
     private _client!: Client;
     public get client(): Client {
@@ -23,9 +34,19 @@ export class Bot {
         return this._musicPlayer;
     }
 
+    public get isProd(): boolean {
+        return this._isProd;
+    }
+
+    public get guild(): Guild {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this._client.guilds.cache.find((guild) => guild.id == guildId)!;
+    }
+
     private commands: SlashCommand[] = [];
 
-    constructor() {
+    constructor(private _isProd: boolean) {
+        Bot._instance = this;
         this._client = new Client({
             sweepers: {messages: {interval: 43200, lifetime: 21600}},
             makeCache: Options.cacheWithLimits({
@@ -36,8 +57,11 @@ export class Bot {
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.GuildIntegrations,
+                GatewayIntentBits.GuildScheduledEvents,
             ],
         });
+
+        logger.info('Starting up...', new Date());
 
         this.onReady();
         this.onInteractionCreate();
@@ -48,6 +72,122 @@ export class Bot {
         commandLoader.loadAll();
 
         this.commands = MetadataManager.instance.slashCommands;
+
+        initializeApp({
+            credential: applicationDefault(),
+        });
+        getFirestore().settings({
+            ignoreUndefinedProperties: true,
+        });
+
+        // this.setUpEventTimers();
+    }
+
+    private setUpEventTimers() {
+        // clean up orphaned discord events
+        cron.schedule('0 0 * * *', async (now) => {
+            logger.info('Running cleanup job');
+            const events = await EventManager.getInstance().getEvents();
+            const discordEventIds = events.filter(e => e.nextEvent).map(e => e.nextEvent!.discordEventId);
+            const dEvents = await this.guild.scheduledEvents.fetch();
+            dEvents
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                .filter(dEvent => dEvent.creatorId === this._client.user!.id)
+                .filter(dEvent => !discordEventIds.includes(dEvent.id))
+                .each(dEvent => {
+                    this.guild.scheduledEvents.delete(dEvent);
+                });
+        });
+
+        //              ┌────────────── second (optional)
+        //              │ ┌──────────── minute
+        //              │ │ ┌────────── hour
+        //              │ │ │ ┌──────── day of month
+        //              │ │ │ │ ┌────── month
+        //              │ │ │ │ │ ┌──── day of week
+        //              │ │ │ │ │ │
+        //              │ │ │ │ │ │
+        //              * * * * * *
+        // Scheduled for 57 so that if an event is created for "now",
+        // then it will still pick it up.
+        
+        cron.schedule('2 * * * * *', async (now) => {
+
+            if (!this._client.isReady()) {
+                logger.error('Client isn\'t ready...');
+                return;
+            }
+            if (now === 'manual' || now === 'init') {
+                now = new Date();
+            }
+            logger.debug('var:', now);
+            logger.debug('actual:', new Date());
+            logger.debug('Checking events...');
+            const events = await EventManager.getInstance().getEvents();
+            logger.debug('event#:', events.length);
+            // TODO: Instead of looping over EVERY event, maybe we can query the time to only get todays at least
+            for (const event of events) {
+                // handle creation/deletion
+                const dEvent = await EventManager.getInstance().manageEvent(this.guild.scheduledEvents, event);
+                if (!dEvent || !event.nextEvent?.discordEvent)
+                    continue;
+
+                const eventDate = event.nextEvent.discordEvent.scheduledStartAt;
+                if (!eventDate) // Shouldn't happen, our events always have a start datetime
+                    continue;
+                logger.debug([now, eventDate, isSameDay(now, eventDate)]);
+                const channel = this._client.channels.cache.get(event.announcementChannelId);
+                if (!channel?.isTextBased()) {
+                    logger.error(`not a text channel: ${event.announcementChannelId}`);
+                    return;
+                }
+
+                logger.debug(`${event.postPrior}:${event.nextEvent.postPriorSent}`, event, now, eventDate, isAfter(now, subHours(eventDate, 1)));
+
+                if (event.postAt && !event.nextEvent.postAtSent && isAfter(now, eventDate)) {
+                    event.nextEvent.postAtSent = true;
+                    logger.debug('postAt');
+                    channel.send(`Time for ${event.name}!`);
+                    await EventManager.getInstance().updateEvent(event);
+                } else if (event.postPrior && !event.nextEvent.postPriorSent && isAfter(now, subHours(eventDate, 1))) {
+                    event.nextEvent.postPriorSent = true;
+                    logger.debug('postPrior');
+                    channel.send(`${event.name} starts <t:${eventDate.getTime()/1000}:R>!`);
+                    await EventManager.getInstance().updateEvent(event);
+                } else if (event.postMorning && !event.nextEvent.postMorningSent && now.getHours() === 8 && isSameDay(now, eventDate)) {
+                    event.nextEvent.postMorningSent = true;
+                    logger.debug('postMorning');
+                    // channel.send(`${event.name} is today at ${format(eventDate, 'h:mm aaa')}!`);
+                    channel.send(`${event.name} is today at <t:${eventDate.getTime()/1000}:t>!`);
+                    await EventManager.getInstance().updateEvent(event);
+                } else {
+                    logger.debug(`no alert for ${event.id}`);
+                }
+            }
+        }, {
+            recoverMissedExecutions: false, // when scheduled to run once a minute, it runs twice
+            runOnInit: false, // running on init can cause some race condition stuff if it creates a discord event
+        });
+    }
+
+    public async seedDB() {
+        if (this.isProd) {
+            return;
+        }
+
+        const eventDB = EventService.getInstance();
+
+        // await eventDB.deleteAll();
+
+        // EventManager.getInstance().createEvent(this.guild.scheduledEvents, {
+        //     name: 'Test Event',
+        //     startDate: new Date(),
+        //     channel: '921199392827006996',
+        //     createdBy: '',
+        // });
+        const events = await eventDB.getEvents();
+        logger.debug('all events:', events);
+        // logger.debug('on monday:', !!(events[0].recurringDays & Days.MONDAY));
     }
 
     public login(token: string) {
@@ -107,22 +247,65 @@ export class Bot {
     }
 
     private onReady() {
-        this._client.on('ready', async () => {
+        this._client.on(Events.ClientReady, async () => {
             if (!this._client.user || !this._client.application) {
                 return;
             }
+            logger.info(`${this._client.user.username} is online`);
 
             this.clearStatus();
+            await this.seedDB();
+            this.setUpEventTimers();
 
-            logger.info(`${this._client.user.username} is online`);
+            // const event = (await EventService.getInstance().getEvents())[0];
+            // const dEvent = await this._client.guilds.cache.find((g) => g.id == guildId)!.scheduledEvents.create({
+            //     name: 'Event Name',
+            //     entityType: GuildScheduledEventEntityType.Voice,
+            //     privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
+            //     scheduledStartTime: event.startDate.toDate(),
+            //     channel: event.channel,
+            // });
+            // if (dEvent) {
+            //     event.discordEvent = dEvent.id;
+            //     EventService.getInstance().updateEvent(event);
+            // } else {
+            //     logger.debug('failed to create event');
+            // }
+
+            // const rest = new RESTWithTypes({ version: '10' }).setToken(!this._isProd ? testBot.token : token);
+            // EventManager.getInstance().getEvent('BlTY0up3tXE0ZJKVXJci').then(partialEvent => {
+            //     if (!partialEvent) return;
+            //     rest.post(Routes.channelMessages('1014356927196712980'), {
+            //         body: {
+            //             embeds: [{
+            //                 color: 0x0099ff,
+            //                 title: partialEvent.name,
+            //                 description: partialEvent.description || null,
+            //                 fields: [
+            //                     { name: 'Start Date', value: partialEvent.startDate ? `<t:${partialEvent.startDate.getTime()/1000}:F>` : 'Not set', inline: true },
+            //                     { name: 'Voice Channel', value: partialEvent.voiceChannel?.name ?? 'Not set', inline: true },
+            //                     { name: 'Announcement Channel', value: partialEvent.announcementChannel?.name ?? 'Not set', inline: true },
+            //                     { name: 'End Date', value: partialEvent.startDate ? `<t:${partialEvent.startDate.getTime()/1000}:F>` : 'Not set', inline: true },
+            //                     { name: 'Recurring Type', value: 'Weekly', inline: true },
+            //                     { name: 'Recurring Days', value: 'MWF', inline: true },
+            //                     { name: 'Post Morning', value: 'true', inline: true },
+            //                     { name: 'Post Prior', value: 'true', inline: true },
+            //                     { name: 'Post At', value: 'true', inline: true },
+            //                     // { name: '\u200b', value: '\u200b' },
+            //                 ],
+            //             }],
+            //         },
+            //     });
+            // });
         });
     }
 
     private onInteractionCreate() {
-        this._client.on('interactionCreate', async (interaction: Interaction) => {
+        this._client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             if (interaction.isChatInputCommand()) {
                 await this.handleSlashCommand(interaction);
-            } else if (interaction.isSelectMenu()) {
+            } else if (interaction.isStringSelectMenu()) {
+                logger.debug('String Select:', interaction.customId);
                 if (interaction.customId === 'search-song-select') {
                     await interaction.deferUpdate();
 
@@ -147,7 +330,121 @@ export class Bot {
                         content: `🎶 | Queued up **${song[0].title}**!`,
                         components: [],
                     });
+                } else if (interaction.customId.startsWith('schedule:')) {
+                    const matches = interaction.customId.match(/schedule:(\w+):(\w+)/);
+                    if (!matches) {
+                        throw new Error(`Could not parse schedule select: ${interaction.customId}`);
+                    }
+                    const [_, propName, eventId] = matches;
+                    const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                    if (!partialEvent) {
+                        throw new Error(`Could not find event with id: ${eventId}`);
+                    }
+                    if (propName === 'recurringType') {
+                        partialEvent.recurringType = Number.parseInt(interaction.values[0]);
+                    } else if (propName === 'recurringDays') {
+                        partialEvent.recurringDays = interaction.values.reduce((acc, d) => acc | Number.parseInt(d), 0);
+                    }
+                    await EventManager.getInstance().updateEvent(partialEvent);
+                    await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
                 }
+            } else if (interaction.isButton()) {
+                logger.debug('Button:', interaction.customId);
+                if (interaction.customId.startsWith('schedule')) {
+                    const command = interaction.customId.substring('schedule:'.length);
+                    if (command.startsWith('modal')) {
+                        const matches = command.match(/modal:(\w+):(\w+)/);
+                        if (!matches) {
+                            throw new Error(`Could not parse modal command: ${command}`);
+                        }
+                        const [_, modalName, eventId] = matches;
+                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                        if (!partialEvent) {
+                            throw new Error(`Could not find event with id: ${eventId}`);
+                        }
+                        let modal: ModalBuilder | undefined;
+                        switch (modalName) {
+                            case 'info':
+                                modal = new InfoModal(partialEvent).modal;
+                                break;
+                            case 'schedule':
+                                modal = new ScheduleModal(partialEvent).modal;
+                                break;
+                        }
+                        // if (modalName === 'schedule') {
+                        //     // interaction.awaitModalSubmit({ time: 60_000, filter: m => m.user.id === interaction.user.id && m.customId === interaction.customId })
+                        //     //     .then(async (modalSubmitInteraction) => {
+                        //     //         ScheduleModal.processDate(partialEvent, modalSubmitInteraction);
+                        //     //         await EventManager.getInstance().updateEvent(partialEvent);
+                        //     //         if (modalSubmitInteraction.isFromMessage()) {
+                        //     //             await modalSubmitInteraction.update(EventMessageBuilder.buildMessage(partialEvent));
+                        //     //         }
+                        //     //     });
+                        // }
+                        if (modal)
+                            await interaction.showModal(modal);
+                    } else if (command.startsWith('toggle:')) {
+                        const matches = command.match(/toggle:(\w+):(\w+)/);
+                        if (!matches) {
+                            throw new Error(`Could not parse update command: ${command}`);
+                        }
+                        const [_, propName, eventId] = matches;
+                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                        if (!partialEvent) {
+                            throw new Error(`Could not find event with id: ${eventId}`);
+                        }
+                        logger.debug(`Toggling propname (${propName}) from ${partialEvent[propName]}`);
+                        partialEvent[propName] = !partialEvent[propName];
+                        await EventManager.getInstance().updateEvent(partialEvent);
+                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                    } else if (command.startsWith('cancel:')) {
+                        //
+                    } else if (command.startsWith('create:')) {
+                        const matches = command.match(/create:(\w+)/);
+                        if (!matches) {
+                            throw new Error(`Could not parse update command: ${command}`);
+                        }
+                        const [_, eventId] = matches;
+                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                        if (!partialEvent) {
+                            throw new Error(`Could not find event with id: ${eventId}`);
+                        }
+                        await EventManager.getInstance().finishEventCreation(this.guild.scheduledEvents, partialEvent);
+                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent, true));
+                    }
+                }
+            } else if (interaction.isModalSubmit()) {
+                logger.debug(`got modal submit: ${interaction.customId}`);
+                // Schedule modal - date/time/recurring
+                if (interaction.customId.startsWith('schedule')) {
+                    const command = interaction.customId.substring('schedule:'.length);
+                    if (command.startsWith('modal')) {
+                        const matches = interaction.customId.match(/modal:(\w+):(\w+)/);
+                        if (!matches) {
+                            throw new Error(`Could not parse modal submit command: ${interaction.customId}`);
+                        }
+                        const [_, modalName, eventId] = matches;
+                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                        if (!partialEvent) {
+                            throw new Error(`Could not find event with id: ${eventId}`);
+                        }
+                        // TODO: use modalName to get the class and access static constants for values maybe?
+                        // Or add methods to teh modal class to parse the data and edit the event
+                        switch (modalName) {
+                            case 'info':
+                                InfoModal.processData(partialEvent, interaction);
+                                break;
+                            case 'schedule':
+                                ScheduleModal.processData(partialEvent, interaction);
+                                break;
+                        }
+                        await EventManager.getInstance().updateEvent(partialEvent);
+                        if (interaction.isFromMessage())
+                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                    }
+                }
+            } else {
+                logger.debug(`Unhandled interaction event: ${interaction.type}`);
             }
         });
     }

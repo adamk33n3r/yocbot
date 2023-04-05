@@ -1,12 +1,11 @@
-import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { ActionRowBuilder, ChatInputCommandInteraction, GuildMember, SelectMenuBuilder } from 'discord.js';
+import { getVoiceConnection } from '@discordjs/voice';
+import { ActionRowBuilder, ChatInputCommandInteraction, GuildMember, StringSelectMenuBuilder } from 'discord.js';
 import { Bot } from 'src/Bot';
-import { SlashCommand, SlashCommandOption, SlashCommands } from 'src/types/CommandDecorators';
+import { SlashCommand, SlashCommandOption } from 'src/types/CommandDecorators';
 import { OnlyRoles } from './guards/Permissions';
 import { BotMustBeDisconnected, MemberMustBeInSameVoiceChannel, MemberMustBeInVoiceChannel } from './guards/VoiceChannel';
 import logger from '../Logger';
 
-@SlashCommands()
 export abstract class MusicCommands {
     @SlashCommand({
         description: 'Play a song in your channel. Adds it to the queue',
@@ -183,8 +182,8 @@ export abstract class MusicCommands {
             .sort((a, b) => cmp(a.channel?.artist, b.channel?.artist));
         logger.info(results.length + ' results');
 
-        const selectRow = new ActionRowBuilder<SelectMenuBuilder>()
-            .addComponents(new SelectMenuBuilder()
+        const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+            .addComponents(new StringSelectMenuBuilder()
                 .setCustomId('search-song-select')
                 .setPlaceholder('Select song to play')
                 .setOptions(results.map((song, idx) => ({
