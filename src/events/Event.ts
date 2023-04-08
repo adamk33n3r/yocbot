@@ -1,4 +1,4 @@
-import { GuildScheduledEvent, VoiceChannel, Snowflake, GuildMember, TextChannel } from 'discord.js';
+import { GuildScheduledEvent, VoiceChannel, Snowflake, GuildMember, TextChannel, Role } from 'discord.js';
 
 import { Timestamp, DocumentData } from 'firebase-admin/firestore';
 import { Bot } from 'src/Bot';
@@ -38,6 +38,7 @@ export interface IEventData<P extends boolean = boolean> {
     duration?: number;
     voiceChannelId: Snowflake;
     announcementChannelId: Snowflake;
+    pingRoleId?: Snowflake;
     imageUrl?: string;
     createdById: Snowflake;
     createdAt: Date | Timestamp;
@@ -79,6 +80,8 @@ export class Event implements IEventData {
     public voiceChannel?: VoiceChannel;
     public announcementChannelId: Snowflake;
     public announcementChannel?: TextChannel;
+    public pingRoleId?: string;
+    public pingRole?: Role;
     public imageUrl?: string;
     public createdById: Snowflake;
     public createdBy?: GuildMember;
@@ -102,6 +105,7 @@ export class Event implements IEventData {
         this.duration = data.duration;
         this.voiceChannelId = data.voiceChannelId;
         this.announcementChannelId = data.announcementChannelId;
+        this.pingRoleId = data.pingRoleId;
         this.imageUrl = data.imageUrl;
         this.nextEvent = data.nextEvent;
         this.createdById = data.createdById;
@@ -139,6 +143,8 @@ export class Event implements IEventData {
             promises.push(Bot.getInstance().guild.members.fetch(this.createdById).then(user => this.createdBy = user));
         if (this.nextEvent)
             promises.push(Bot.getInstance().guild.scheduledEvents.fetch(this.nextEvent.discordEventId).then(event => this.nextEvent!.discordEvent = event));
+        if (this.pingRoleId)
+            promises.push(Bot.getInstance().guild.roles.fetch(this.pingRoleId).then(role => this.pingRole = role || undefined));
         return Promise.allSettled(promises);
     }
 
@@ -156,6 +162,7 @@ export class Event implements IEventData {
             duration: this.duration,
             voiceChannelId: this.voiceChannelId,
             announcementChannelId: this.announcementChannelId,
+            pingRoleId: this.pingRoleId,
             imageUrl: this.imageUrl,
             createdById: this.createdById,
             createdAt: this.createdAt,

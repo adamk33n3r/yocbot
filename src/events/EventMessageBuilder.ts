@@ -40,6 +40,7 @@ export class EventMessageBuilder {
                 { name: 'Post Morning', value: partialEvent.postMorning.toString(), inline: true },
                 { name: 'Post Prior', value: partialEvent.postPrior.toString(), inline: true },
                 { name: 'Post At', value: partialEvent.postAt.toString(), inline: true },
+                { name: 'Ping Role', value: partialEvent.pingRole?.toString() ?? 'Not set', inline: true },
             );
 
         const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];

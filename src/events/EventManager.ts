@@ -1,5 +1,5 @@
 import { isBefore, getDay, nextDay, setHours, setMinutes, isAfter, addHours, addMinutes } from 'date-fns';
-import { GuildScheduledEvent, GuildScheduledEventEntityType, GuildScheduledEventManager, GuildScheduledEventPrivacyLevel, GuildScheduledEventStatus, GuildTextChannelResolvable, GuildVoiceChannelResolvable, Snowflake } from 'discord.js';
+import { GuildScheduledEvent, GuildScheduledEventEntityType, GuildScheduledEventManager, GuildScheduledEventPrivacyLevel, GuildScheduledEventStatus, GuildTextChannelResolvable, GuildVoiceChannelResolvable, RoleResolvable, Snowflake } from 'discord.js';
 import { EventService } from 'src/database/EventService';
 import { Days, Event, IEventData, IEventDataComplete, RecurringType } from './Event';
 import logger from 'src/Logger';
@@ -9,6 +9,7 @@ export interface EventCreateOptions {
     description?: string;
     voiceChannel: GuildVoiceChannelResolvable;
     announcementChannel: GuildTextChannelResolvable;
+    pingRole?: RoleResolvable;
     createdBy: Snowflake;
     image?: string;
 }
@@ -55,6 +56,7 @@ export class EventManager {
             description: eventOptions.description,
             voiceChannelId: typeof eventOptions.voiceChannel === 'string' ? eventOptions.voiceChannel : eventOptions.voiceChannel.id,
             announcementChannelId: typeof eventOptions.announcementChannel === 'string' ? eventOptions.announcementChannel : eventOptions.announcementChannel.id,
+            pingRoleId: typeof eventOptions.pingRole === 'string' ? eventOptions.pingRole : eventOptions.pingRole?.id ?? undefined,
             createdById: eventOptions.createdBy,
             createdAt: new Date(),
             updatedAt: new Date(),

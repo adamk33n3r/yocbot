@@ -9,6 +9,7 @@ import {
     SlashCommandBuilder,
     SlashCommandChannelOption,
     SlashCommandNumberOption,
+    SlashCommandRoleOption,
     SlashCommandStringOption,
     SlashCommandSubcommandBuilder,
     ToAPIApplicationCommandOptions,
@@ -145,6 +146,9 @@ export class SlashCommand {
                 case ApplicationCommandOptionType.Attachment:
                     builder.addAttachmentOption(new SlashCommandAttachmentOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
                     break;
+                case ApplicationCommandOptionType.Role:
+                    builder.addRoleOption(new SlashCommandRoleOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
+                    break;
             }
         });
     }
@@ -160,6 +164,8 @@ export class SlashCommand {
                     return interaction.options.getChannel(opt.name) || undefined;
                 case ApplicationCommandOptionType.Attachment:
                     return interaction.options.getAttachment(opt.name) || undefined;
+                case ApplicationCommandOptionType.Role:
+                    return interaction.options.getRole(opt.name) || undefined;
                 default:
                     logger.error(`Unhandled command option type ${opt.type}`);
                     break;

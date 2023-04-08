@@ -1,6 +1,6 @@
 import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
 import { isAfter, isSameDay, subHours } from 'date-fns';
-import { ActivityType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Guild, GuildMember, Interaction, ModalBuilder, Options, VoiceBasedChannel } from 'discord.js';
+import { ActivityType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Guild, GuildMember, Interaction, ModalBuilder, Options, Role, TextBasedChannel, TextChannel, VoiceBasedChannel } from 'discord.js';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import * as cron from 'node-cron';
@@ -111,6 +111,9 @@ export class Bot {
         // Scheduled for 57 so that if an event is created for "now",
         // then it will still pick it up.
         
+        async function sendEventAnnouncement(channel: TextBasedChannel, message: string, role?: Role) {
+            channel.send(role ? `${role.toString()} ${message}` : message);
+        }
         cron.schedule('2 * * * * *', async (now) => {
 
             if (!this._client.isReady()) {
@@ -147,18 +150,18 @@ export class Bot {
                 if (event.postAt && !event.nextEvent.postAtSent && isAfter(now, eventDate)) {
                     event.nextEvent.postAtSent = true;
                     logger.debug('postAt');
-                    channel.send(`Time for ${event.name}!`);
+                    await sendEventAnnouncement(channel, `Time for ${event.name}!`, event.pingRole);
                     await EventManager.getInstance().updateEvent(event);
                 } else if (event.postPrior && !event.nextEvent.postPriorSent && isAfter(now, subHours(eventDate, 1))) {
                     event.nextEvent.postPriorSent = true;
                     logger.debug('postPrior');
-                    channel.send(`${event.name} starts <t:${eventDate.getTime()/1000}:R>!`);
+                    await sendEventAnnouncement(channel, `${event.name} starts <t:${eventDate.getTime()/1000}:R>!`, event.pingRole);
                     await EventManager.getInstance().updateEvent(event);
                 } else if (event.postMorning && !event.nextEvent.postMorningSent && now.getHours() === 8 && isSameDay(now, eventDate)) {
                     event.nextEvent.postMorningSent = true;
                     logger.debug('postMorning');
                     // channel.send(`${event.name} is today at ${format(eventDate, 'h:mm aaa')}!`);
-                    channel.send(`${event.name} is today at <t:${eventDate.getTime()/1000}:t>!`);
+                    await sendEventAnnouncement(channel, `${event.name} is today at <t:${eventDate.getTime()/1000}:t>!`, event.pingRole);
                     await EventManager.getInstance().updateEvent(event);
                 } else {
                     logger.debug(`no alert for ${event.id}`);

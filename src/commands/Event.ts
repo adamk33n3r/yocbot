@@ -1,4 +1,4 @@
-import { Attachment, ChatInputCommandInteraction, VoiceChannel, ApplicationCommandOptionType, TextChannel } from 'discord.js';
+import { Attachment, ChatInputCommandInteraction, VoiceChannel, ApplicationCommandOptionType, TextChannel, Role } from 'discord.js';
 import { Bot } from 'src/Bot';
 import { EventManager } from 'src/events/EventManager';
 import { EventMessageBuilder } from 'src/events/EventMessageBuilder';
@@ -34,6 +34,13 @@ export abstract class EventCommands {
         })
         announceChannel: TextChannel,
         @SlashCommandOption({
+            name: 'ping_role',
+            description: 'An optional role to ping on announcements',
+            required: false,
+            type: ApplicationCommandOptionType.Role,
+        })
+        pingRole: Role | undefined,
+        @SlashCommandOption({
             name: 'description',
             description: 'description of event',
             required: false,
@@ -55,6 +62,7 @@ export abstract class EventCommands {
             description,
             voiceChannel: voiceChannel.id,
             announcementChannel: announceChannel.id,
+            pingRole: pingRole?.id,
             image: image?.proxyURL,
             createdBy: interaction.user.id,
         });
@@ -75,8 +83,8 @@ export abstract class EventCommands {
                 const partialName = interaction.options.getFocused();
                 const events = await EventManager.getInstance().getEvents();
                 const data = events
-                    .filter(e => e.name.startsWith(partialName))
-                    .map(e => ({ name: e.name, value: e.id }));
+                    .filter(e => e.name.startsWith(partialName) || e.id.startsWith(partialName))
+                    .map(e => ({ name: `${e.name} - ${e.id}`, value: e.id }));
                 return interaction.respond(data);
             },
         })

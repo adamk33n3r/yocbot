@@ -66,6 +66,8 @@ function mapType(typeName: string): ApplicationCommandOptionType {
             return ApplicationCommandOptionType.Channel;
         case 'attachment':
             return ApplicationCommandOptionType.Attachment;
+        case 'role':
+            return ApplicationCommandOptionType.Role;
         default:
             throw new Error(`Invalid slash option type for: ${typeName}`);
     }
