@@ -1,6 +1,7 @@
 import {
     ApplicationCommandOptionAllowedChannelTypes,
     ApplicationCommandOptionType,
+    AutocompleteInteraction,
     ChatInputCommandInteraction,
     RESTPostAPIApplicationCommandsJSONBody,
     SharedSlashCommandOptions,
@@ -36,6 +37,7 @@ export interface SlashCommandOption {
     maxValue?: number;
     channelTypes?: ApplicationCommandOptionAllowedChannelTypes[];
     required?: boolean;
+    autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
 
 export class SlashCommand {
@@ -66,7 +68,7 @@ export class SlashCommand {
         return this.slashCommandOptions.users?.slice();
     }
 
-    public execute(bot: Bot, interaction: ChatInputCommandInteraction) {
+    public async execute(bot: Bot, interaction: ChatInputCommandInteraction) {
         logger.debug(this.options);
         logger.debug(this.parseParams(interaction));
         logger.debug(this.slashCommandOptions.guards?.length ?? 'no guards');
@@ -78,6 +80,16 @@ export class SlashCommand {
             }
         }
         return this.slashCommandOptions.func.call(null, ...this.parseParams(interaction), bot, interaction);
+    }
+
+    public async autocomplete(bot: Bot, interaction: AutocompleteInteraction): Promise<unknown> {
+        const focusedOption = interaction.options.getFocused(true);
+        const opt = this.options.find(opt => opt.name == focusedOption.name);
+        if (!opt || !opt.autocomplete) {
+            return;
+        }
+
+        return opt.autocomplete(interaction);
     }
 
     constructor(private slashCommandOptions: Options) { }
@@ -114,7 +126,7 @@ export class SlashCommand {
         this.options.forEach(opt => {
             switch (opt.type) {
                 case ApplicationCommandOptionType.String:
-                    builder.addStringOption(new SlashCommandStringOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
+                    builder.addStringOption(new SlashCommandStringOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false).setAutocomplete(!!opt.autocomplete));
                     break;
                 case ApplicationCommandOptionType.Number: {
                     const numOpt = new SlashCommandNumberOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false);

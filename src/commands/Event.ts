@@ -64,13 +64,21 @@ export abstract class EventCommands {
     }
 
     @SlashCommand({
-        description: 'Edit an event',
+        description: 'Manage an event',
     })
-    public async edit(
+    public async manage(
         @SlashCommandOption({
-            name: 'id',
-            description: 'ID of event',
+            name: 'name',
+            description: 'Name of event',
             required: true,
+            autocomplete: async (interaction) => {
+                const partialName = interaction.options.getFocused();
+                const events = await EventManager.getInstance().getEvents();
+                const data = events
+                    .filter(e => e.name.startsWith(partialName))
+                    .map(e => ({ name: e.name, value: e.id }));
+                return interaction.respond(data);
+            },
         })
         id: string,
         bot: Bot,

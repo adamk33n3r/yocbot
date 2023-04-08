@@ -305,6 +305,20 @@ export class Bot {
             try {
                 if (interaction.isChatInputCommand()) {
                     await this.handleSlashCommand(interaction);
+                } else if (interaction.isAutocomplete()) {
+                    let commandName = interaction.commandName;
+                    const subCommand = interaction.options.getSubcommand(true);
+                    if (subCommand) {
+                        commandName += ':' + subCommand;
+                    }
+
+                    const slashCommand = this.commands.find(c => c.fullName === commandName);
+                    if (!slashCommand) {
+                        logger.info(`no command: ${commandName}`);
+                        return;
+                    }
+
+                    await slashCommand.autocomplete(this, interaction);
                 } else if (interaction.isStringSelectMenu()) {
                     logger.debug('String Select:', interaction.customId);
                     if (interaction.customId === 'search-song-select') {
