@@ -1,6 +1,20 @@
-import { ApplicationCommandOptionAllowedChannelTypes, ApplicationCommandOptionType, ChatInputCommandInteraction, RESTPostAPIApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandNumberOption, SlashCommandStringOption } from 'discord.js';
+import {
+    ApplicationCommandOptionAllowedChannelTypes,
+    ApplicationCommandOptionType,
+    ChatInputCommandInteraction,
+    RESTPostAPIApplicationCommandsJSONBody,
+    SharedSlashCommandOptions,
+    SlashCommandAttachmentOption,
+    SlashCommandBuilder,
+    SlashCommandChannelOption,
+    SlashCommandNumberOption,
+    SlashCommandStringOption,
+    SlashCommandSubcommandBuilder,
+    ToAPIApplicationCommandOptions,
+} from 'discord.js';
 import { Bot } from './Bot';
 import logger from './Logger';
+import { SlashCommandGroup } from './SlashCommandGroup';
 
 type GuardPredicate = (bot: Bot, interaction: ChatInputCommandInteraction) => string | undefined;
 
@@ -25,15 +39,23 @@ export interface SlashCommandOption {
 }
 
 export class SlashCommand {
-    // ownerOnly: boolean = false;
-    // sameVoiceChannel: boolean = false;
-    // restricted: { roles: string[], users: string[] } = { roles: [], users: [] };
-    // data?: RESTPostAPIApplicationCommandsJSONBody;
+    private _group: SlashCommandGroup | undefined;
 
     private options: SlashCommandOption[] = [];
 
     public get name() {
         return this.slashCommandOptions.name;
+    }
+
+    public get fullName(): string {
+        return this._group ? `${this._group.name}:${this.name}` : this.name;
+    }
+
+    public get parent(): SlashCommandGroup | undefined {
+        return this._group;
+    }
+    public set parent(val: SlashCommandGroup | undefined) {
+        this._group = val;
     }
 
     public get roles() {
@@ -45,13 +67,9 @@ export class SlashCommand {
     }
 
     public execute(bot: Bot, interaction: ChatInputCommandInteraction) {
-        // interaction.options.
-        // this.slashCommandOptions.funcParams.map(fp => {
-        //     if (fp === Bot)
-        // });
         logger.debug(this.options);
         logger.debug(this.parseParams(interaction));
-        logger.debug(this.slashCommandOptions.guards?.length);
+        logger.debug(this.slashCommandOptions.guards?.length ?? 'no guards');
         for (const guard of this.slashCommandOptions.guards || []) {
             const failed = guard(bot, interaction);
             if (failed) {
@@ -68,7 +86,17 @@ export class SlashCommand {
         this.options.push(option);
     }
 
-    public toJSON(): RESTPostAPIApplicationCommandsJSONBody {
+    public asSubcommand(): SlashCommandSubcommandBuilder {
+        const builder = new SlashCommandSubcommandBuilder()
+            .setName(this.slashCommandOptions.name)
+            .setDescription(this.slashCommandOptions.description);
+
+        this.addOptionsToBuilder(builder);
+
+        return builder;
+    }
+
+    public asCommand(): SlashCommandBuilder {
         const builder = new SlashCommandBuilder()
             .setName(this.slashCommandOptions.name)
             .setDescription(this.slashCommandOptions.description);
@@ -77,6 +105,12 @@ export class SlashCommand {
             builder.setDefaultMemberPermissions(0);
         }
 
+        this.addOptionsToBuilder(builder);
+
+        return builder;
+    }
+
+    private addOptionsToBuilder(builder: SharedSlashCommandOptions) {
         this.options.forEach(opt => {
             switch (opt.type) {
                 case ApplicationCommandOptionType.String:
@@ -101,20 +135,19 @@ export class SlashCommand {
                     break;
             }
         });
-        return builder.toJSON();
     }
 
     private parseParams(interaction: ChatInputCommandInteraction) {
         return this.options.map((opt) => {
             switch (opt.type) {
                 case ApplicationCommandOptionType.String:
-                    return interaction.options.getString(opt.name) ?? undefined;
+                    return interaction.options.getString(opt.name) || undefined;
                 case ApplicationCommandOptionType.Number:
-                    return interaction.options.getNumber(opt.name) ?? undefined;
+                    return interaction.options.getNumber(opt.name) || undefined;
                 case ApplicationCommandOptionType.Channel:
-                    return interaction.options.getChannel(opt.name) ?? undefined;
+                    return interaction.options.getChannel(opt.name) || undefined;
                 case ApplicationCommandOptionType.Attachment:
-                    return interaction.options.getAttachment(opt.name) ?? undefined;
+                    return interaction.options.getAttachment(opt.name) || undefined;
                 default:
                     logger.error(`Unhandled command option type ${opt.type}`);
                     break;

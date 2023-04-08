@@ -462,9 +462,8 @@ export class Bot {
                 } else {
                     logger.debug(`Unhandled interaction event: ${interaction.type}`);
                 }
-            } catch (e) {
-                console.error(e);
-                logger.error('Error occurred in interaction handler:', e);
+            } catch (e: any) {
+                logger.error('Error occurred in interaction handler:', e, e.code);
             }
         });
     }
@@ -489,14 +488,20 @@ export class Bot {
 
         await interaction.deferReply({ ephemeral: true });
 
-        const slashCommand = this.commands.find(c => c.name === interaction.commandName);
+        let commandName = interaction.commandName;
+        const subCommand = interaction.options.getSubcommand(true);
+        if (subCommand) {
+            commandName += ':' + subCommand;
+        }
+
+        const slashCommand = this.commands.find(c => c.fullName === commandName);
         if (!slashCommand) {
-            logger.info(`no command: ${interaction.commandName}`);
-            interaction.followUp({ content: 'An error has occurred' });
+            logger.info(`no command: ${commandName}`);
+            await interaction.followUp({ content: 'An error has occurred' });
             return;
         }
 
-        logger.info(`Recieved command: ${interaction.commandName}`);
+        logger.info(`Recieved command: ${commandName}`);
 
         await slashCommand.execute(this, interaction);
     }

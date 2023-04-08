@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import yargs from 'yargs';
-import { RESTPutAPIApplicationGuildCommandsResult, Routes } from 'discord.js';
+import { RESTPostAPIApplicationCommandsJSONBody, RESTPutAPIApplicationGuildCommandsResult, Routes } from 'discord.js';
 import { MetadataManager } from './MetadataManager';
 import { RESTWithTypes } from './RESTWithTypes';
 import { clientId, guildId, token, testBot } from './local.config.json';
@@ -23,13 +23,19 @@ if (!argv.clear) {
     }
 }
 
-const commands = MetadataManager.instance.slashCommands;
-for (const cmd of commands) {
-    logger.info(`Command name: ${cmd.name}`, cmd.toJSON());
+const commands: RESTPostAPIApplicationCommandsJSONBody[] = [];
+for (const cmdGrp of MetadataManager.instance.slashCommandGroups) {
+    logger.info(`Command name: ${cmdGrp.name}`, cmdGrp.toJSON());
+    const cmdJson = cmdGrp.toJSON();
+    if (Array.isArray(cmdJson)) {
+        commands.push(...cmdJson);
+    } else {
+        commands.push(cmdJson);
+    }
 }
 
 const rest = new RESTWithTypes({ version: '10' }).setToken(argv.testbot ? testBot.token : token);
 
-rest.put<RESTPutAPIApplicationGuildCommandsResult>(Routes.applicationGuildCommands(argv.testbot ? testBot.clientId : clientId, guildId), { body: commands.map(cmd => cmd.toJSON()) })
+rest.put<RESTPutAPIApplicationGuildCommandsResult>(Routes.applicationGuildCommands(argv.testbot ? testBot.clientId : clientId, guildId), { body: commands })
     .then(data => logger.info(`Successfully registered ${data.length} application commands.`))
     .catch(console.error);

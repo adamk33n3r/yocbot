@@ -15,7 +15,7 @@ export type MethodDecoratorEx = <T>(
 ) => void;
 
 export type ParameterDecoratorEx = (
-    target: Record<string, any>,
+    target: any,
     propertyKey: string,
     parameterIndex: number,
 ) => void;

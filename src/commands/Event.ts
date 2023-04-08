@@ -5,13 +5,16 @@ import { EventMessageBuilder } from 'src/events/EventMessageBuilder';
 import logger from 'src/Logger';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
-@SlashCommandGroup('event')
+@SlashCommandGroup({
+    name: 'event',
+    description: 'Commands to schedule and manage events',
+})
 export abstract class EventCommands {
     // private constructor() {}
     @SlashCommand({
         description: 'Create an event',
     })
-    public async schedule(
+    public async create(
         @SlashCommandOption({
             name: 'name',
             description: 'name of event',

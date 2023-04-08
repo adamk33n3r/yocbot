@@ -1,21 +1,13 @@
-import { SlashCommand, SlashCommandOption } from './SlashCommand';
-
-interface SlashCommandMetadata {
-    target: Record<string, unknown>;
-    key: string;
-    slashCommand: SlashCommand;
-}
-interface SlashCommandOptionsMetadata {
-    target: Record<string, unknown>;
-    key: string;
-    slashCommandOption: SlashCommandOption;
-}
+import type { SlashCommand } from './SlashCommand';
+import type { SlashCommandGroup } from './SlashCommandGroup';
 
 export class MetadataManager {
-    private _slashCommands: SlashCommandMetadata[] = [];
-    private _slashCommandsOptions: SlashCommandOptionsMetadata[] = [];
+    private _slashCommandGroups: SlashCommandGroup[] = [];
     public get slashCommands(): SlashCommand[] {
-        return this._slashCommands.map(scm => scm.slashCommand);
+        return this._slashCommandGroups.flatMap(scg => scg.commands);
+    }
+    public get slashCommandGroups(): SlashCommandGroup[] {
+        return this._slashCommandGroups.slice();
     }
 
     private static _instance: MetadataManager;
@@ -26,19 +18,7 @@ export class MetadataManager {
         return this._instance;
     }
 
-    private constructor() {
-        this._slashCommands = [];
-    }
-
-    // This is called AFTER command options
-    public addSlashCommand(target: Record<string, unknown>, key: string, slashCommand: SlashCommand) {
-        this._slashCommandsOptions.filter(sco => sco.target === target && sco.key === key).forEach(sco => {
-            slashCommand.addOption(sco.slashCommandOption);
-        });
-        this._slashCommands.push({ target, key, slashCommand });
-    }
-
-    public addSlashCommandOption(target: Record<string, unknown>, key: string, slashCommandOption: SlashCommandOption) {
-        this._slashCommandsOptions.unshift({ target, key, slashCommandOption });
+    public addSlashCommandGroup(slashCommandGroup: SlashCommandGroup) {
+        this._slashCommandGroups.push(slashCommandGroup);
     }
 }

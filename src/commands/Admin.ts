@@ -1,8 +1,9 @@
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { Bot } from 'src/Bot';
 import logger from 'src/Logger';
-import { SlashCommand, SlashCommandOption } from 'src/types/CommandDecorators';
+import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
+@SlashCommandGroup()
 export abstract class AdminCommands {
     @SlashCommand({
         description: 'Move all members in your voice channel to the specified channel',

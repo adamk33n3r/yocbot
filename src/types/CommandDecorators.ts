@@ -1,7 +1,10 @@
 import { ApplicationCommandOptionType, ChannelType } from 'discord.js';
 import { MetadataManager } from 'src/MetadataManager';
-import { Options as BaseSlashCommandOptions, SlashCommand as SlashCommandData, SlashCommandOption } from 'src/SlashCommand';
-import { ClassDecoratorEx, ConstructorType, MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
+import { SlashCommandGroup as SlashCommandGroupData } from 'src/SlashCommandGroup';
+import { SlashCommand as SlashCommandData } from 'src/SlashCommand';
+import type { SlashCommandGroupOptions } from 'src/SlashCommandGroup';
+import type { SlashCommandOption, Options as BaseSlashCommandOptions } from 'src/SlashCommand';
+import { MethodDecoratorEx, ParameterDecoratorEx } from './DecoratorTypes';
 
 // export function Restricted(roles: Snowflake[] = [], users: Snowflake[] = []): ClassDecorator {
 //     return setMetaData('restricted', { roles, users });
@@ -10,32 +13,27 @@ import { ClassDecoratorEx, ConstructorType, MethodDecoratorEx, ParameterDecorato
 //     return setMetaData('ownerOnly', true);
 // }
 
+export const SLASH_COMMANDS: unique symbol = Symbol.for('SLASH_COMMANDS');
+export const SLASH_COMMAND_OPTIONS: unique symbol = Symbol.for('SLASH_COMMAND_OPTIONS');
+
 export const Type = Function;
 export interface Type<T> extends Function {
     new(...args: any[]): T;
 }
 type SlashCommandOptions = Partial<Omit<BaseSlashCommandOptions, 'func'>>;
 export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
-    return function(target: Record<string, () => Promise<unknown>>, key: string, descriptor: PropertyDescriptor) {
-        const name = options?.name ?? key.toString().toLowerCase();
+    return function(target: Record<string | symbol, any>, key: string, descriptor: PropertyDescriptor) {
+        const name = options?.name ?? key.toLowerCase();
         if (!/^[\p{Ll}\p{Lm}\p{Lo}\p{N}\p{sc=Devanagari}\p{sc=Thai}_-]+$/u.test(name)) {
             throw new Error(`Name of command '${name}' is not valid`);
         }
-        // const cmdFunc = (target as Record<string | symbol, () => Promise<unknown>>)[key];
-        // const paramTypes = Reflect.getMetadata('design:paramtypes', target, key) as (Type<unknown>)[];
-        // paramTypes.filter(t => !(t === Bot || t === ChatInputCommandInteraction));
-        // const mappedTypes = paramTypes.map((t, i) => {
-        //     if (t === Bot) {
-        //         return Bot;
-        //     } else if (t === ChatInputCommandInteraction) {
-        //         return ChatInputCommandInteraction;
-        //     }
 
-        //     return { type: mapType(t.name.toLowerCase()) };
-        // });
+        if (name == 'schedule') {
+            console.log('@SlashCommand:', name, typeof target, key, descriptor);
+        }
 
-        const cmdFunc = target[key];
-        MetadataManager.instance.addSlashCommand(target, key, new SlashCommandData({
+        const cmdFunc = target[key] as () => Promise<unknown>;
+        const slashCommandData = new SlashCommandData({
             name,
             description: options?.description ?? name,
             adminOnly: options?.adminOnly,
@@ -43,17 +41,17 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
             users: options?.users,
             func: cmdFunc,
             guards: options?.guards,
-            // funcParams: mappedTypes,
-        }));
+        });
+
+        const slashCommands = Reflect.getMetadata(SLASH_COMMANDS, target) as Map<string, SlashCommandData> || new Map();
+        slashCommands.set(key, slashCommandData);
+        Reflect.defineMetadata(SLASH_COMMANDS, slashCommands, target);
         return descriptor;
     };
 }
-export function SlashCommandGroup(name: string) {
+export function SlashCommandGroup(options?: SlashCommandGroupOptions) {
     return function(target: any) {
-        console.log(target, typeof target);
-        console.log('slash command group', name);
-        // MetadataManager.instance.addSlashCommandGroup(name);
-        target._slashCommandGroup = name;
+        MetadataManager.instance.addSlashCommandGroup(new SlashCommandGroupData(target, options));
     };
 }
 
@@ -75,7 +73,7 @@ function mapType(typeName: string): ApplicationCommandOptionType {
 
 type SlashCommandOptionOptions = Omit<SlashCommandOption, 'type'> & Partial<Pick<SlashCommandOption, 'type'>>;
 export function SlashCommandOption(options: SlashCommandOptionOptions): ParameterDecoratorEx {
-    return function(target: Record<string, unknown>, propertyKey: string, parameterIndex: number) {
+    return function(target: Record<string|symbol, any>, propertyKey: string, parameterIndex: number) {
         if (!/^[\p{Ll}\p{Lm}\p{Lo}\p{N}\p{sc=Devanagari}\p{sc=Thai}_-]+$/u.test(options.name)) {
             throw new Error(`Name of command option '${options.name}' is not valid`);
         }
@@ -99,7 +97,10 @@ export function SlashCommandOption(options: SlashCommandOptionOptions): Paramete
             }
         }
 
-        MetadataManager.instance.addSlashCommandOption(target, propertyKey, options as SlashCommandOption);
+        const commandOptions = Reflect.getMetadata(SLASH_COMMAND_OPTIONS, target, propertyKey) as SlashCommandOption[] || [];
+        // Unshift because property decorators run in reverse
+        commandOptions.unshift(options as SlashCommandOption);
+        Reflect.defineMetadata(SLASH_COMMAND_OPTIONS, commandOptions, target, propertyKey);
     };
 }
 

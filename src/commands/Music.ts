@@ -1,11 +1,15 @@
 import { getVoiceConnection } from '@discordjs/voice';
 import { ActionRowBuilder, ChatInputCommandInteraction, GuildMember, StringSelectMenuBuilder } from 'discord.js';
 import { Bot } from 'src/Bot';
-import { SlashCommand, SlashCommandOption } from 'src/types/CommandDecorators';
+import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 import { OnlyRoles } from './guards/Permissions';
 import { BotMustBeDisconnected, MemberMustBeInSameVoiceChannel, MemberMustBeInVoiceChannel } from './guards/VoiceChannel';
 import logger from '../Logger';
 
+@SlashCommandGroup({
+    name: 'music',
+    description: 'Music commands',
+})
 export abstract class MusicCommands {
     @SlashCommand({
         description: 'Play a song in your channel. Adds it to the queue',
