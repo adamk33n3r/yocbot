@@ -116,11 +116,10 @@ export class EventManager {
     }
 
     public async manageEvent(eventManager: GuildScheduledEventManager, event: Event & IEventDataComplete): Promise<GuildScheduledEvent | null> {
-        // If the discord event isn't active and it's at least an hour after the start time, delete it
+        // If the discord event isn't active and it's been the duration after the start time, delete it
         if (event.nextEvent?.discordEvent?.scheduledStartTimestamp &&
             event.nextEvent.discordEvent.status !== GuildScheduledEventStatus.Active &&
-            isAfter(Date.now(), addHours(event.nextEvent.discordEvent.scheduledStartTimestamp, 1))) {
-            // isBefore(event.discordEvent.scheduledStartTimestamp, subHours(Date.now(), 1))) {
+            isAfter(Date.now(), addMinutes(event.nextEvent.discordEvent.scheduledStartTimestamp, event.duration))) {
             try {
                 logger.debug('deleting past discord event');
                 await eventManager.delete(event.nextEvent.discordEventId);
