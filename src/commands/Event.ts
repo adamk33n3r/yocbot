@@ -66,7 +66,7 @@ export abstract class EventCommands {
             image: image?.proxyURL,
             createdBy: interaction.user.id,
         });
-        logger.info('created event:', partialEvent);
+        logger.info('created event:', partialEvent.toFirestoreData());
 
         return interaction.followUp(EventMessageBuilder.buildMessage(partialEvent));
     }
