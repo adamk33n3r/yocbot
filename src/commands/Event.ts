@@ -80,10 +80,10 @@ export abstract class EventCommands {
             description: 'Name of event',
             required: true,
             autocomplete: async (interaction) => {
-                const partialName = interaction.options.getFocused();
+                const partialName = interaction.options.getFocused().toLowerCase();
                 const events = await EventManager.getInstance().getEvents();
                 const data = events
-                    .filter(e => e.name.startsWith(partialName) || e.id.startsWith(partialName))
+                    .filter(e => e.name.toLowerCase().startsWith(partialName) || e.id.toLowerCase().startsWith(partialName))
                     .map(e => ({ name: `${e.name} - ${e.id}`, value: e.id }));
                 return interaction.respond(data);
             },

@@ -1,5 +1,5 @@
 import { formatDuration, intervalToDuration } from 'date-fns';
-import { ActionRowBuilder, MessageActionRowComponentBuilder, BaseMessageOptions, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, MessageActionRowComponentBuilder, BaseMessageOptions, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, RoleSelectMenuBuilder } from 'discord.js';
 import { Event, RecurringType, Days } from './Event';
 import { EventManager } from './EventManager';
 
@@ -70,6 +70,13 @@ export class EventMessageBuilder {
                         .setOptions(Object.entries(Days).filter(([k, _]) => typeof Days[k as keyof typeof Days] === 'number').map(([k, v]) => ({ label: k, value: v + '' }))),
                 ));
             }
+            components.push(new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
+                new RoleSelectMenuBuilder()
+                    .setCustomId(`schedule:pingRole:${partialEvent.id}`)
+                    .setMinValues(0)
+                    .setMaxValues(1)
+                    .setPlaceholder('Ping Role'),
+            ));
             components.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder()
                     .setStyle(partialEvent.postMorning ? ButtonStyle.Primary : ButtonStyle.Secondary)
@@ -98,13 +105,6 @@ export class EventMessageBuilder {
                     .setCustomId(`schedule:modal:schedule:${partialEvent.id}`)
                     .setLabel('Schedule')
                     .setEmoji('📅'),
-            ));
-            components.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
-                // new ButtonBuilder()
-                //     .setStyle(ButtonStyle.Secondary)
-                //     .setCustomId(`schedule:modal:schedule:${partialEvent.id}`)
-                //     .setLabel('Schedule')
-                //     .setEmoji('📅'),
                 new ButtonBuilder()
                     .setStyle(ButtonStyle.Secondary)
                     .setCustomId(`schedule:cancel:${partialEvent.id}`)

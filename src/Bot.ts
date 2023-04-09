@@ -366,6 +366,23 @@ export class Bot {
                         await EventManager.getInstance().updateEvent(partialEvent);
                         await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
                     }
+                } else if (interaction.isRoleSelectMenu()) {
+                    if (interaction.customId.startsWith('schedule:')) {
+                        const matches = interaction.customId.match(/schedule:(\w+):(\w+)/);
+                        if (!matches) {
+                            throw new Error(`Could not parse schedule select: ${interaction.customId}`);
+                        }
+                        const [_, propName, eventId] = matches;
+                        const partialEvent = await EventManager.getInstance().getEvent(eventId);
+                        if (!partialEvent) {
+                            throw new Error(`Could not find event with id: ${eventId}`);
+                        }
+                        if (propName === 'pingRole') {
+                            partialEvent.pingRoleId = interaction.values[0];
+                        }
+                        await EventManager.getInstance().updateEvent(partialEvent);
+                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                    }
                 } else if (interaction.isButton()) {
                     logger.debug('Button:', interaction.customId);
                     if (interaction.customId.startsWith('schedule')) {
