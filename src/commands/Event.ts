@@ -1,7 +1,7 @@
 import { Attachment, ChatInputCommandInteraction, VoiceChannel, ApplicationCommandOptionType, TextChannel, Role } from 'discord.js';
 import { Bot } from 'src/Bot';
 import { EventManager } from 'src/events/EventManager';
-import { EventMessageBuilder } from 'src/events/EventMessageBuilder';
+import { EventMessageBuilder, EventMessageMode } from 'src/events/EventMessageBuilder';
 import logger from 'src/Logger';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
@@ -68,7 +68,7 @@ export abstract class EventCommands {
         });
         logger.info('created event:', partialEvent.toFirestoreData());
 
-        return interaction.followUp(EventMessageBuilder.buildMessage(partialEvent));
+        return interaction.followUp(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.CREATE));
     }
 
     @SlashCommand({
@@ -96,6 +96,6 @@ export abstract class EventCommands {
         if (!event) {
             return interaction.followUp(`Could not find event with id: ${id}`);
         }
-        return interaction.followUp(EventMessageBuilder.buildMessage(event));
+        return interaction.followUp(EventMessageBuilder.buildMessage(event, EventMessageMode.EDIT));
     }
 }

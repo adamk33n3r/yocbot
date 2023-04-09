@@ -10,8 +10,17 @@ function formattedDuration(minutes: number) {
     }));
 }
 
+export enum EventMessageMode {
+    EMBED_ONLY,
+    CREATE,
+    EDIT,
+}
+
 export class EventMessageBuilder {
-    public static buildMessage(partialEvent: Event, onlyEmbed: boolean = false): BaseMessageOptions {
+    public static buildMessage(partialEvent: Event, mode: EventMessageMode): BaseMessageOptions {
+        if (mode === EventMessageMode.EDIT && partialEvent.partial) {
+            mode = EventMessageMode.CREATE;
+        }
         let recurringDays: string = '';
         // Object.entries(Days).filter(([k, _]) => typeof Days[k as keyof typeof Days] === 'number')
         Object.entries(Days).filter(([_, v]) => typeof v === 'number')
@@ -44,7 +53,7 @@ export class EventMessageBuilder {
             );
 
         const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];
-        if (!onlyEmbed) {
+        if (mode !== EventMessageMode.EMBED_ONLY) {
             components.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
                 new StringSelectMenuBuilder()
                     .setCustomId(`schedule:recurringType:${partialEvent.id}`)
@@ -108,12 +117,12 @@ export class EventMessageBuilder {
                 new ButtonBuilder()
                     .setStyle(ButtonStyle.Secondary)
                     .setCustomId(`schedule:cancel:${partialEvent.id}`)
-                    .setLabel('Cancel')
+                    .setLabel(mode === EventMessageMode.EDIT ? 'Delete' : 'Cancel')
                     .setEmoji('❌'),
                 new ButtonBuilder()
                     .setStyle(ButtonStyle.Success)
                     .setCustomId(`schedule:create:${partialEvent.id}`)
-                    .setLabel('Create')
+                    .setLabel(mode === EventMessageMode.EDIT ? 'Update' : 'Create')
                     .setDisabled(!EventManager.getInstance().validateCreate(partialEvent))
                     .setEmoji('✅'),
             ));
@@ -125,6 +134,6 @@ export class EventMessageBuilder {
         //     .setLabel('Create')
         //     .setURL('https://yoc.gg/events/37482405992438273');
 
-        return { content: (onlyEmbed ? '**Event Scheduled!**' : '**Schedule Event**') + `: ${partialEvent.id}`, components, embeds: [embed] };
+        return { content: (mode === EventMessageMode.EMBED_ONLY ? '**Event Scheduled!**' : '**Schedule Event**') + `: ${partialEvent.id}`, components, embeds: [embed] };
     }
 }

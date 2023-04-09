@@ -8,7 +8,7 @@ import * as cron from 'node-cron';
 import { CommandLoader } from './CommandLoader';
 import { EventService } from './database/EventService';
 import { EventManager } from './events/EventManager';
-import { EventMessageBuilder } from './events/EventMessageBuilder';
+import { EventMessageBuilder, EventMessageMode } from './events/EventMessageBuilder';
 import { guildId } from './local.config.json';
 import logger from './Logger';
 import { MetadataManager } from './MetadataManager';
@@ -364,7 +364,7 @@ export class Bot {
                             partialEvent.recurringDays = interaction.values.reduce((acc, d) => acc | Number.parseInt(d), 0);
                         }
                         await EventManager.getInstance().updateEvent(partialEvent);
-                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EDIT));
                     }
                 } else if (interaction.isRoleSelectMenu()) {
                     if (interaction.customId.startsWith('schedule:')) {
@@ -381,7 +381,7 @@ export class Bot {
                             partialEvent.pingRoleId = interaction.values[0];
                         }
                         await EventManager.getInstance().updateEvent(partialEvent);
-                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                        await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EDIT));
                     }
                 } else if (interaction.isButton()) {
                     logger.debug('Button:', interaction.customId);
@@ -431,7 +431,7 @@ export class Bot {
                             logger.debug(`Toggling propname (${propName}) from ${partialEvent[propName]}`);
                             partialEvent[propName] = !partialEvent[propName];
                             await EventManager.getInstance().updateEvent(partialEvent);
-                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EDIT));
                         } else if (command.startsWith('cancel:')) {
                             const matches = command.match(/cancel:(\w+)/);
                             if (!matches) {
@@ -460,7 +460,7 @@ export class Bot {
                                 throw new Error(`Could not find event with id: ${eventId}`);
                             }
                             await EventManager.getInstance().finishEventCreation(this.guild.scheduledEvents, partialEvent);
-                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent, true));
+                            await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EMBED_ONLY));
                         }
                     }
                 } else if (interaction.isModalSubmit()) {
@@ -490,7 +490,7 @@ export class Bot {
                             }
                             await EventManager.getInstance().updateEvent(partialEvent);
                             if (interaction.isFromMessage())
-                                await interaction.update(EventMessageBuilder.buildMessage(partialEvent));
+                                await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EDIT));
                         }
                     }
                 } else {
