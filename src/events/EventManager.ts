@@ -54,6 +54,7 @@ export class EventManager {
             name: eventOptions.name,
             partial: true,
             description: eventOptions.description,
+            imageUrl: eventOptions.image,
             voiceChannelId: typeof eventOptions.voiceChannel === 'string' ? eventOptions.voiceChannel : eventOptions.voiceChannel.id,
             announcementChannelId: typeof eventOptions.announcementChannel === 'string' ? eventOptions.announcementChannel : eventOptions.announcementChannel.id,
             pingRoleId: typeof eventOptions.pingRole === 'string' ? eventOptions.pingRole : eventOptions.pingRole?.id ?? undefined,

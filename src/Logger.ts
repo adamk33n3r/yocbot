@@ -31,10 +31,10 @@ const logger = createLogger({
                     if(meta[Symbol.for('splat') as any]) {
                         for (const data of meta[Symbol.for('splat') as any] as (object|null|undefined)[]) {
                             if (data instanceof Error) {
-                                metaString += '\n\t' + util.format(meta.stack);
+                                metaString += '\n' + util.format(meta.stack);
                             } else if (data?.toString) {
                                 if (data.toString().startsWith('[object')) {
-                                    metaString += '\n\t' + util.format(data);
+                                    metaString += '\n' + util.format(data);
                                 } else {
                                     metaString += util.format(data);
                                 }
