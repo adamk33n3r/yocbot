@@ -106,7 +106,7 @@ export abstract class Movenight {
             return interaction.followUp('There are no movies');
         }
 
-        const listStr = movies.sort((a, b) => b.votes.length - a.votes.length)
+        const listStr = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
             .slice(0, 5)
             .reduce((str, m, idx) => `${str}${idx + 1}. ${m.title} - ${m.votes.length}${m.watched ? ' ✅' : ''}\n`, '```\n') + '```';
         return interaction.followUp(listStr);
