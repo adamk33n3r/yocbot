@@ -16,6 +16,10 @@ export abstract class Movenight {
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ) {
+        const movies = await MovieService.getInstance().getMovies();
+        if (movies.some(m => m.title.toLowerCase().startsWith(title.toLowerCase()))) {
+            return interaction.followUp('Either that movie is already added, or you need to add a subtitle to differentiate');
+        }
         const movie = new Movie({ title });
         movie.votes.push(interaction.user.id);
         await MovieService.getInstance().createMovie(movie);
