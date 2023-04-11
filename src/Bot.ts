@@ -310,7 +310,7 @@ export class Bot {
                     await this.handleSlashCommand(interaction);
                 } else if (interaction.isAutocomplete()) {
                     let commandName = interaction.commandName;
-                    const subCommand = interaction.options.getSubcommand(true);
+                    const subCommand = interaction.options.getSubcommand(false);
                     if (subCommand) {
                         commandName += ':' + subCommand;
                     }
@@ -523,7 +523,7 @@ export class Bot {
         await interaction.deferReply({ ephemeral: true });
 
         let commandName = interaction.commandName;
-        const subCommand = interaction.options.getSubcommand(true);
+        const subCommand = interaction.options.getSubcommand(false);
         if (subCommand) {
             commandName += ':' + subCommand;
         }

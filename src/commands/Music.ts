@@ -1,5 +1,5 @@
 import { getVoiceConnection } from '@discordjs/voice';
-import { ActionRowBuilder, ChatInputCommandInteraction, GuildMember, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, StringSelectMenuBuilder } from 'discord.js';
 import { Bot } from 'src/Bot';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 import { OnlyRoles } from './guards/Permissions';
@@ -122,8 +122,10 @@ export abstract class MusicCommands {
             description: 'Volume percent (default is 10%)',
             minValue: 0,
             maxValue: 100,
+            required: false,
+            type: ApplicationCommandOptionType.Number,
         })
-        volume: number,
+        volume: number | undefined,
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ) {

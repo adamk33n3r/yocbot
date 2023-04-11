@@ -6,6 +6,7 @@ import {
     RESTPostAPIApplicationCommandsJSONBody,
     SharedSlashCommandOptions,
     SlashCommandAttachmentOption,
+    SlashCommandBooleanOption,
     SlashCommandBuilder,
     SlashCommandChannelOption,
     SlashCommandNumberOption,
@@ -127,10 +128,10 @@ export class SlashCommand {
         this.options.forEach(opt => {
             switch (opt.type) {
                 case ApplicationCommandOptionType.String:
-                    builder.addStringOption(new SlashCommandStringOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false).setAutocomplete(!!opt.autocomplete));
+                    builder.addStringOption(new SlashCommandStringOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true).setAutocomplete(!!opt.autocomplete));
                     break;
                 case ApplicationCommandOptionType.Number: {
-                    const numOpt = new SlashCommandNumberOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false);
+                    const numOpt = new SlashCommandNumberOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true);
                     if (opt.minValue) {
                         numOpt.setMinValue(opt.minValue);
                     }
@@ -140,14 +141,17 @@ export class SlashCommand {
                     builder.addNumberOption(numOpt);
                     break;
                 }
+                case ApplicationCommandOptionType.Boolean:
+                    builder.addBooleanOption(new SlashCommandBooleanOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true));
+                    break;
                 case ApplicationCommandOptionType.Channel:
-                    builder.addChannelOption(new SlashCommandChannelOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false).addChannelTypes(...opt.channelTypes ?? []));
+                    builder.addChannelOption(new SlashCommandChannelOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true).addChannelTypes(...opt.channelTypes ?? []));
                     break;
                 case ApplicationCommandOptionType.Attachment:
-                    builder.addAttachmentOption(new SlashCommandAttachmentOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
+                    builder.addAttachmentOption(new SlashCommandAttachmentOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true));
                     break;
                 case ApplicationCommandOptionType.Role:
-                    builder.addRoleOption(new SlashCommandRoleOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? false));
+                    builder.addRoleOption(new SlashCommandRoleOption().setName(opt.name).setDescription(opt.description).setRequired(opt.required ?? true));
                     break;
             }
         });
@@ -160,6 +164,8 @@ export class SlashCommand {
                     return interaction.options.getString(opt.name) || undefined;
                 case ApplicationCommandOptionType.Number:
                     return interaction.options.getNumber(opt.name) || undefined;
+                case ApplicationCommandOptionType.Boolean:
+                    return interaction.options.getBoolean(opt.name) || undefined;
                 case ApplicationCommandOptionType.Channel:
                     return interaction.options.getChannel(opt.name) || undefined;
                 case ApplicationCommandOptionType.Attachment:

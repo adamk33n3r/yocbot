@@ -61,6 +61,8 @@ function mapType(typeName: string): ApplicationCommandOptionType {
             return ApplicationCommandOptionType.Number;
         case 'string':
             return ApplicationCommandOptionType.String;
+        case 'boolean':
+            return ApplicationCommandOptionType.Boolean;
         case 'voicechannel':
         case 'textchannel':
             return ApplicationCommandOptionType.Channel;
