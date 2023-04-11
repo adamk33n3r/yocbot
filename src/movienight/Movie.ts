@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord.js';
-import { DocumentData } from 'firebase-admin/firestore';
+import { DocumentData, Timestamp } from 'firebase-admin/firestore';
 
 export interface IMovieData {
     id?: string;
@@ -28,8 +28,8 @@ export class Movie {
         this.watched = data.watched || false;
         this.plexUrl = data.plexUrl;
         this.imgUrl = data.imgUrl;
-        this.createdAt = data.createdAt || new Date();
-        this.updatedAt = data.updatedAt || new Date();
+        this.createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt || new Date();
+        this.updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : data.updatedAt || new Date();
         this.votes = data.votes || [];
     }
 

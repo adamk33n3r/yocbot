@@ -145,7 +145,7 @@ export class Bot {
                     return;
                 }
 
-                logger.debug(`${event.postPrior}:${event.nextEvent.postPriorSent}`, event, now, eventDate, isAfter(now, subHours(eventDate, 1)));
+                // logger.debug(`${event.postPrior}:${event.nextEvent.postPriorSent}`, event, now, eventDate, isAfter(now, subHours(eventDate, 1)));
 
                 if (event.postAt && !event.nextEvent.postAtSent && isAfter(now, eventDate)) {
                     event.nextEvent.postAtSent = true;

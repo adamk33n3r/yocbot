@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import { Bot } from 'src/Bot';
 import { MovieService } from 'src/database/MovieService';
 import { Movie } from 'src/movienight/Movie';
