@@ -155,13 +155,13 @@ export class Bot {
                 } else if (event.postPrior && !event.nextEvent.postPriorSent && isAfter(now, subHours(eventDate, 1))) {
                     event.nextEvent.postPriorSent = true;
                     logger.debug('postPrior');
-                    await sendEventAnnouncement(channel, `${event.name} starts <t:${eventDate.getTime()/1000}:R>!`, event.pingRole);
+                    await sendEventAnnouncement(channel, `${event.name} starts <t:${Math.floor(eventDate.getTime()/1000)}:R>!`, event.pingRole);
                     await EventManager.getInstance().updateEvent(event);
                 } else if (event.postMorning && !event.nextEvent.postMorningSent && now.getHours() === 8 && isSameDay(now, eventDate)) {
                     event.nextEvent.postMorningSent = true;
                     logger.debug('postMorning');
                     // channel.send(`${event.name} is today at ${format(eventDate, 'h:mm aaa')}!`);
-                    await sendEventAnnouncement(channel, `${event.name} is today at <t:${eventDate.getTime()/1000}:t>!`, event.pingRole);
+                    await sendEventAnnouncement(channel, `${event.name} is today at <t:${Math.floor(eventDate.getTime()/1000)}:t>!`, event.pingRole);
                     await EventManager.getInstance().updateEvent(event);
                 } else {
                     logger.debug(`no alert for ${event.id}`);
