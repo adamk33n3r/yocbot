@@ -28,10 +28,8 @@ export class EventMessageBuilder {
             .forEach(([k, v]) => {
                 if (partialEvent.recurringDays & v) {
                     recurringDays += k[0];
-                    if (v & Days.THURSDAY)
-                        recurringDays += 'h';
-                    if (v & Days.SATURDAY)
-                        recurringDays += 'a';
+                    if (v & Days.THURSDAY || v & Days.SATURDAY)
+                        recurringDays += k[1];
                 }
             });
 

@@ -151,7 +151,7 @@ export class EventManager {
         logger.debug('creating new discord event...');
         const dEvent = await eventManager.create({
             name: event.name,
-            description: event.description,
+            description: event.description + '\n\n' + this.generateDescription(event),
             entityType: GuildScheduledEventEntityType.Voice,
             privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
             scheduledStartTime: next,
@@ -202,6 +202,36 @@ export class EventManager {
             .map(v => v as Days)
             .filter(v => dayMask & v);
     }
+
+    private extractDaysString(dayMask: number): string {
+        return Object.entries(Days).filter(([_, v]) => typeof v === 'number')
+            .map(([k, v]) => [k, v] as [string, Days])
+            .reduce((str, [k, v]) => {
+                if (dayMask & v) {
+                    str += k[0];
+                    if (v & Days.THURSDAY || v & Days.SATURDAY)
+                        str += k[1];
+                }
+                return str;
+            }, '');
+    }
+
+    private generateDescription(event: Event): string {
+        let desc = '';
+        if (event.recurringType != RecurringType.NONE) {
+            desc += `Recurs ${RecurringType[event.recurringType]} on ${this.extractDaysString(event.recurringDays)}\n`;
+        }
+        if (event.postAt || event.postPrior || event.postMorning) {
+            desc += `Will ping ${event.announcementChannel?.name} `;
+            desc += [[event.postMorning, 'at 8am'], [event.postPrior, '1hr prior'], [event.postAt, 'at event start']]
+                .filter(p => p[0])
+                .join(', ')
+            desc += '\n';
+        }
+        desc += `Created by: ${event.createdBy?.toString()}`;
+        return desc;
+    }
+
 
     public validateCreate(partialEvent: IEventData): partialEvent is IEventDataComplete {
         return !!(partialEvent.name && 
