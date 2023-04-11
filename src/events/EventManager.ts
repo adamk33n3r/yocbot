@@ -222,10 +222,11 @@ export class EventManager {
             desc += `Recurs ${RecurringType[event.recurringType]} on ${this.extractDaysString(event.recurringDays)}\n`;
         }
         if (event.postAt || event.postPrior || event.postMorning) {
-            desc += `Will ping ${event.announcementChannel?.name} `;
-            desc += [[event.postMorning, 'at 8am'], [event.postPrior, '1hr prior'], [event.postAt, 'at event start']]
+            desc += `Will ping #${event.announcementChannel?.name} `;
+            desc += ([[event.postMorning, 'at 8am'], [event.postPrior, '1hr prior'], [event.postAt, 'at event start']] as [boolean, string][])
                 .filter(p => p[0])
-                .join(', ')
+                .map(p => p[1])
+                .join(', ');
             desc += '\n';
         }
         desc += `Created by: ${event.createdBy?.toString()}`;
