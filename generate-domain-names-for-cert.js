@@ -13,6 +13,7 @@ const subdomains = [
     'sonarr',
     'tautulli',
     'tdarr',
+    'photos',
 ];
 
 console.log(base);

@@ -16,6 +16,9 @@ import { ScheduleModal } from './modals/ScheduleModal';
 import { MusicPlayer } from './MusicPlayer';
 import { SlashCommand } from './SlashCommand';
 import { InfoModal } from './modals/InfoModal';
+import { MovieListMessageBuilder } from './movienight/MovieListMessageBuilder';
+import { MovieService } from './database/MovieService';
+import { Movie } from './movienight/Movie';
 
 // logger.info(generateDependencyReport());
 
@@ -191,6 +194,18 @@ export class Bot {
         const events = await eventDB.getEvents();
         logger.debug('all events:', events);
         // logger.debug('on monday:', !!(events[0].recurringDays & Days.MONDAY));
+
+        if ((await MovieService.getInstance().getMovies(true)).length === 0) {
+            logger.debug('Seeding db with movies...');
+            const movies = [];
+            for (let idx = 1; idx <= 25; idx++) {
+                movies.push(MovieService.getInstance().createMovie(new Movie({
+                    title: `Movie ${idx}`,
+                })));
+            }
+            await Promise.all(movies);
+            logger.debug('Done');
+        }
     }
 
     public login(token: string) {
@@ -462,6 +477,19 @@ export class Bot {
                             await EventManager.getInstance().finishEventCreation(this.guild.scheduledEvents, partialEvent);
                             await interaction.update(EventMessageBuilder.buildMessage(partialEvent, EventMessageMode.EMBED_ONLY));
                         }
+                    } else if (interaction.customId.startsWith('movielist')) {
+                        const arg = interaction.customId.split(':')[1];
+                        const all = !!interaction.customId.split(':')[2];
+                        const movies = await MovieService.getInstance().getMovies(all);
+                        let pageNum: number;
+                        if (arg === 'start') {
+                            pageNum = 0;
+                        } else if (arg === 'end') {
+                            pageNum = -1;
+                        } else {
+                            pageNum = Number.parseInt(arg);
+                        }
+                        await interaction.update(MovieListMessageBuilder.buildMessage(movies, all, pageNum));
                     }
                 } else if (interaction.isModalSubmit()) {
                     logger.debug(`got modal submit: ${interaction.customId}`);

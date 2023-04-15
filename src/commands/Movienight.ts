@@ -2,12 +2,16 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import { Bot } from 'src/Bot';
 import { MovieService } from 'src/database/MovieService';
 import { Movie } from 'src/movienight/Movie';
+import { MovieListMessageBuilder } from 'src/movienight/MovieListMessageBuilder';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
-@SlashCommandGroup()
+@SlashCommandGroup({
+    name: 'movies',
+    description: 'Commands to manage movies for movienight',
+})
 export abstract class Movenight {
     @SlashCommand()
-    public async addMovie(
+    public async add(
         @SlashCommandOption({
             name: 'title',
             description: 'Title of the movie',
@@ -27,7 +31,7 @@ export abstract class Movenight {
     }
 
     @SlashCommand()
-    public async watchedMovie(
+    public async watched(
         @SlashCommandOption({
             name: 'title',
             description: 'Title of the movie',
@@ -87,11 +91,29 @@ export abstract class Movenight {
         await MovieService.getInstance().updateMovie(movie);
         return interaction.followUp(`Added vote for ${movie.title}`);
     }
-
     @SlashCommand({
         description: 'Top 5 movies',
     })
-    public async listMovies(
+    public async top(
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        const movies = await MovieService.getInstance().getMovies();
+        if (!movies.length) {
+            return interaction.followUp('There are no movies');
+        }
+
+        const listStr = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
+            .slice(0, 5)
+            .reduce((str, m, idx) => `${str}${idx + 1}. ${m.title} - ${m.votes.length}\n`, '```\n') + '```';
+
+        return interaction.followUp(listStr);
+    }
+
+    @SlashCommand({
+        description: 'List movies',
+    })
+    public async list(
         @SlashCommandOption({
             name: 'all',
             description: 'Show all movies, including watched',
@@ -106,9 +128,6 @@ export abstract class Movenight {
             return interaction.followUp('There are no movies');
         }
 
-        const listStr = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
-            .slice(0, 5)
-            .reduce((str, m, idx) => `${str}${idx + 1}. ${m.title} - ${m.votes.length}${m.watched ? ' ✅' : ''}\n`, '```\n') + '```';
-        return interaction.followUp(listStr);
+        return interaction.followUp(MovieListMessageBuilder.buildMessage(movies, all));
     }
 }
