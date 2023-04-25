@@ -133,41 +133,45 @@ export class Bot {
             logger.debug('event#:', events.length);
             // TODO: Instead of looping over EVERY event, maybe we can query the time to only get todays at least
             for (const event of events) {
-                // handle creation/deletion
-                const dEvent = await EventManager.getInstance().manageEvent(this.guild.scheduledEvents, event);
-                if (!dEvent || !event.nextEvent?.discordEvent)
-                    continue;
+                try {
+                    // handle creation/deletion
+                    const dEvent = await EventManager.getInstance().manageEvent(this.guild.scheduledEvents, event);
+                    if (!dEvent || !event.nextEvent?.discordEvent)
+                        continue;
 
-                const eventDate = event.nextEvent.discordEvent.scheduledStartAt;
-                if (!eventDate) // Shouldn't happen, our events always have a start datetime
-                    continue;
-                logger.debug([now, eventDate, isSameDay(now, eventDate)]);
-                const channel = this._client.channels.cache.get(event.announcementChannelId);
-                if (!channel?.isTextBased()) {
-                    logger.error(`not a text channel: ${event.announcementChannelId}`);
-                    return;
-                }
+                    const eventDate = event.nextEvent.discordEvent.scheduledStartAt;
+                    if (!eventDate) // Shouldn't happen, our events always have a start datetime
+                        continue;
+                    logger.debug([now, eventDate, isSameDay(now, eventDate)]);
+                    const channel = this._client.channels.cache.get(event.announcementChannelId);
+                    if (!channel?.isTextBased()) {
+                        logger.error(`not a text channel: ${event.announcementChannelId}`);
+                        continue;
+                    }
 
-                // logger.debug(`${event.postPrior}:${event.nextEvent.postPriorSent}`, event, now, eventDate, isAfter(now, subHours(eventDate, 1)));
+                    // logger.debug(`${event.postPrior}:${event.nextEvent.postPriorSent}`, event, now, eventDate, isAfter(now, subHours(eventDate, 1)));
 
-                if (event.postAt && !event.nextEvent.postAtSent && isAfter(now, eventDate)) {
-                    event.nextEvent.postAtSent = true;
-                    logger.debug('postAt');
-                    await sendEventAnnouncement(channel, `Time for ${event.name}!`, event.pingRole);
-                    await EventManager.getInstance().updateEvent(event);
-                } else if (event.postPrior && !event.nextEvent.postPriorSent && isAfter(now, subHours(eventDate, 1))) {
-                    event.nextEvent.postPriorSent = true;
-                    logger.debug('postPrior');
-                    await sendEventAnnouncement(channel, `${event.name} starts <t:${Math.floor(eventDate.getTime()/1000)}:R>!`, event.pingRole);
-                    await EventManager.getInstance().updateEvent(event);
-                } else if (event.postMorning && !event.nextEvent.postMorningSent && now.getHours() === 8 && isSameDay(now, eventDate)) {
-                    event.nextEvent.postMorningSent = true;
-                    logger.debug('postMorning');
-                    // channel.send(`${event.name} is today at ${format(eventDate, 'h:mm aaa')}!`);
-                    await sendEventAnnouncement(channel, `${event.name} is today at <t:${Math.floor(eventDate.getTime()/1000)}:t>!`, event.pingRole);
-                    await EventManager.getInstance().updateEvent(event);
-                } else {
-                    logger.debug(`no alert for ${event.id}`);
+                    if (event.postAt && !event.nextEvent.postAtSent && isAfter(now, eventDate)) {
+                        event.nextEvent.postAtSent = true;
+                        logger.info(`postAt: ${event.name}`);
+                        await sendEventAnnouncement(channel, `Time for ${event.name}!`, event.pingRole);
+                        await EventManager.getInstance().updateEvent(event);
+                    } else if (event.postPrior && !event.nextEvent.postPriorSent && isAfter(now, subHours(eventDate, 1))) {
+                        event.nextEvent.postPriorSent = true;
+                        logger.info(`postPrior: ${event.name}`);
+                        await sendEventAnnouncement(channel, `${event.name} starts <t:${Math.floor(eventDate.getTime()/1000)}:R>!`, event.pingRole);
+                        await EventManager.getInstance().updateEvent(event);
+                    } else if (event.postMorning && !event.nextEvent.postMorningSent && now.getHours() === 8 && isSameDay(now, eventDate)) {
+                        event.nextEvent.postMorningSent = true;
+                        logger.info(`postMorning: ${event.name}`);
+                        // channel.send(`${event.name} is today at ${format(eventDate, 'h:mm aaa')}!`);
+                        await sendEventAnnouncement(channel, `${event.name} is today at <t:${Math.floor(eventDate.getTime()/1000)}:t>!`, event.pingRole);
+                        await EventManager.getInstance().updateEvent(event);
+                    } else {
+                        logger.debug(`no alert for ${event.id}`);
+                    }
+                } catch (e) {
+                    logger.error('Error in event cron', e);
                 }
             }
         }, {

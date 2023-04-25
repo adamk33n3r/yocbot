@@ -1,4 +1,4 @@
-import { isBefore, getDay, nextDay, setHours, setMinutes, isAfter, addHours, addMinutes } from 'date-fns';
+import { isBefore, getDay, nextDay, setHours, setMinutes, isAfter, addHours, addMinutes, setSeconds } from 'date-fns';
 import { GuildScheduledEvent, GuildScheduledEventEntityType, GuildScheduledEventManager, GuildScheduledEventPrivacyLevel, GuildScheduledEventStatus, GuildTextChannelResolvable, GuildVoiceChannelResolvable, RoleResolvable, Snowflake } from 'discord.js';
 import { EventService } from 'src/database/EventService';
 import { Days, Event, IEventData, IEventDataComplete, RecurringType } from './Event';
@@ -138,7 +138,7 @@ export class EventManager {
 
         // If the next date is in the past, is not recurring, and the discord event is null, then we're done with it and can remove it
         const next = this.calculateNextEventDateTime(event);
-        if (isBefore(next, Date.now()) && event.recurringType === RecurringType.NONE && !event.nextEvent) {
+        if (isBefore(next, Date.now()) && event.recurringType === RecurringType.NONE && !event.nextEvent?.discordEvent) {
             logger.debug('old event, deleting');
             await this.deleteEvent(event);
             return null;
@@ -151,7 +151,7 @@ export class EventManager {
         logger.debug('creating new discord event...');
         const dEvent = await eventManager.create({
             name: event.name,
-            description: event.description + '\n\n' + this.generateDescription(event),
+            description: (event.description ? (event.description + '\n\n') : '') + this.generateDescription(event),
             entityType: GuildScheduledEventEntityType.Voice,
             privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
             scheduledStartTime: next,
@@ -189,7 +189,7 @@ export class EventManager {
                 logger.debug('eventDays:', eventDays);
                 const nextEventDay = eventDays[0];
                 logger.debug('nextEventDay:', nextEventDay);
-                return setMinutes(setHours(nextEventDay, event.startDate.getHours()), event.startDate.getMinutes());
+                return setSeconds(setMinutes(setHours(nextEventDay, event.startDate.getHours()), event.startDate.getMinutes()), 0);
             }
             default:
                 return event.startDate;
