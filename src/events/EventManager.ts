@@ -76,26 +76,11 @@ export class EventManager {
         }
 
         event.partial = false;
-        // event.startDate = eventOptions.startDate;
-        // event.endDate = eventOptions.endDate;
-        // event.recurringType = eventOptions.recurringType;
-        // event.recurringDays = eventOptions.recurringDays;
-        // event.postMorning = eventOptions.postMorning;
-        // event.postPrior = eventOptions.postPrior;
-        // event.postAt = eventOptions.postAt;
 
         const discordEvent = await this.manageEvent(eventManager, event);
         if (!discordEvent) {
             throw new Error(`Was returned null when trying to create discord event. Was start time wrong? ${event.startDate.toLocaleString()}`);
         }
-        event.nextEvent = {
-            discordEventId: discordEvent.id,
-            discordEvent: discordEvent,
-            postMorningSent: false,
-            postPriorSent: false,
-            postAtSent: false,
-        };
-        this.event$.updateEvent(event);
 
         return event;
     }
@@ -116,11 +101,11 @@ export class EventManager {
         return this.event$.deleteEvent(event);
     }
 
-    public async manageEvent(eventManager: GuildScheduledEventManager, event: Event & IEventDataComplete): Promise<GuildScheduledEvent | null> {
+    public async manageEvent(eventManager: GuildScheduledEventManager, event: Event & IEventDataComplete, now: Date = new Date()): Promise<GuildScheduledEvent | null> {
         // If the discord event isn't active and it's been the duration after the start time, delete it
         if (event.nextEvent?.discordEvent?.scheduledStartTimestamp &&
             event.nextEvent.discordEvent.status !== GuildScheduledEventStatus.Active &&
-            isAfter(Date.now(), addMinutes(event.nextEvent.discordEvent.scheduledStartTimestamp, event.duration))) {
+            isAfter(now, addMinutes(event.nextEvent.discordEvent.scheduledStartTimestamp, event.duration))) {
             try {
                 logger.debug('deleting past discord event');
                 await eventManager.delete(event.nextEvent.discordEventId);
@@ -137,14 +122,14 @@ export class EventManager {
         }
 
         // If the next date is in the past, is not recurring, and the discord event is null, then we're done with it and can remove it
-        const next = this.calculateNextEventDateTime(event);
-        if (isBefore(next, Date.now()) && event.recurringType === RecurringType.NONE && !event.nextEvent?.discordEvent) {
+        const next = this.calculateNextEventDateTime(event, now);
+        if (isBefore(next, now) && event.recurringType === RecurringType.NONE && !event.nextEvent?.discordEvent) {
             logger.debug('old event, deleting');
             await this.deleteEvent(event);
             return null;
         }
 
-        if (isBefore(next, Date.now())) {
+        if (isBefore(next, now)) {
             throw new Error(`Next start time is in the past somehow...${next}: ${event.id}`);
         }
 
@@ -155,7 +140,7 @@ export class EventManager {
             entityType: GuildScheduledEventEntityType.Voice,
             privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
             scheduledStartTime: next,
-            // only used for external events, so not important
+            // only used for external events, so not important, but still shows up in the UI nonetheless
             scheduledEndTime: addMinutes(next, event.duration),
             channel: event.voiceChannelId,
             image: event.imageUrl || 'https://yoc.gg/assets/images/yoc-profile.png',
@@ -174,17 +159,17 @@ export class EventManager {
         return dEvent;
     }
 
-    private calculateNextEventDateTime(event: Event & IEventDataComplete): Date {
+    private calculateNextEventDateTime(event: Event & IEventDataComplete, now: Date): Date {
         switch (event.recurringType) {
             case RecurringType.NONE:
                 return event.startDate;
             case RecurringType.WEEKLY: {
                 // today or event start date, which ever is later
-                const dateToStartSearch = [new Date(), event.startDate].sort((a, b) => b.getTime() - a.getTime())[0];
-                logger.debug('dateToStartSearch:', dateToStartSearch, new Date(), event.startDate);
+                const dateToStartSearch = [now, event.startDate].sort((a, b) => b.getTime() - a.getTime())[0];
+                logger.debug('dateToStartSearch:', dateToStartSearch, now, event.startDate);
                 // get the soonest day out of the recurring days
                 const eventDays = this.extractDays(event.recurringDays)
-                    .map(day => (getDay(dateToStartSearch) === dayToNum[day] && isAfter(dateToStartSearch, Date.now())) ? dateToStartSearch : nextDay(dateToStartSearch, dayToNum[day]))
+                    .map(day => (getDay(dateToStartSearch) === dayToNum[day] && isAfter(dateToStartSearch, now)) ? dateToStartSearch : nextDay(dateToStartSearch, dayToNum[day]))
                     .sort((a, b) => a.getTime() - b.getTime());
                 logger.debug('eventDays:', eventDays);
                 const nextEventDay = eventDays[0];

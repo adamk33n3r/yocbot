@@ -1,5 +1,7 @@
+import { addMinutes } from 'date-fns';
 import { Attachment, ChatInputCommandInteraction, VoiceChannel, ApplicationCommandOptionType, TextChannel, Role } from 'discord.js';
 import { Bot } from 'src/Bot';
+import { Event, IEventDataComplete } from 'src/events/Event';
 import { EventManager } from 'src/events/EventManager';
 import { EventMessageBuilder, EventMessageMode } from 'src/events/EventMessageBuilder';
 import logger from 'src/Logger';
@@ -97,5 +99,42 @@ export abstract class EventCommands {
             return interaction.followUp(`Could not find event with id: ${id}`);
         }
         return interaction.followUp(EventMessageBuilder.buildMessage(event, EventMessageMode.EDIT));
+    }
+
+    @SlashCommand({
+        description: 'Skip an event',
+    })
+    public async skip(
+        @SlashCommandOption({
+            name: 'name',
+            description: 'Name of event',
+            required: true,
+            autocomplete: async (interaction) => {
+                const partialName = interaction.options.getFocused().toLowerCase();
+                const events = await EventManager.getInstance().getEvents();
+                const data = events
+                    .filter(e => e.name.toLowerCase().startsWith(partialName) || e.id.toLowerCase().startsWith(partialName))
+                    .map(e => ({ name: `${e.name} - ${e.id}`, value: e.id }));
+                return interaction.respond(data);
+            },
+        })
+        id: string,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        const event = await EventManager.getInstance().getEvent(id);
+        if (!event) {
+            return interaction.followUp(`Could not find event with id: ${id}`);
+        }
+        const completeEvent = event as Event & IEventDataComplete;
+
+        if (!completeEvent.nextEvent?.discordEvent?.scheduledStartTimestamp) {
+            return interaction.followUp(`Could not find event with id: ${id}`);
+        }
+
+        const after = addMinutes(completeEvent.nextEvent.discordEvent.scheduledStartTimestamp, completeEvent.duration + 1);
+        await EventManager.getInstance().manageEvent(bot.guild.scheduledEvents, completeEvent, after);
+
+        return interaction.followUp(`Skipped the next event for ${event.name}`);
     }
 }
