@@ -34,7 +34,7 @@
     "libsodium-wrappers": "^0.7.11",
     "node-cron": "^3.0.2",
     "node-youtube-music": "^0.7.0",
-    "play-dl": "^1.9.6",
+    "play-dl": "^1.9.7",
     "reflect-metadata": "^0.1.13",
     "utf-8-validate": "^5.0.10",
     "yargs": "^17.7.1",
