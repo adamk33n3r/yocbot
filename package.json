@@ -1,6 +1,6 @@
 {
   "name": "discordbot",
-  "version": "1.1.0",
+  "version": "2.1.0",
   "description": "",
   "main": "dist/src/index.js",
   "scripts": {
@@ -10,11 +10,12 @@
     "starttestdist": "cross-env NODE_ENV='dev' NODE_PATH='./dist' node dist/src/index.js --testbot",
     "build": "tsc -p tsconfig.json",
     "auth": "ts-node auth-yt.ts",
-    "deploy-commands": "ts-node -r tsconfig-paths/register src/deploy-commands.ts",
-    "deploy-commands-test": "ts-node -r tsconfig-paths/register src/deploy-commands.ts --testbot",
-    "clear-commands-test": "ts-node -r tsconfig-paths/register src/deploy-commands.ts --testbot --clear",
+    "deploy-commands": "ts-node -r tsconfig-paths/register src/scripts/deploy-commands.ts",
+    "deploy-commands-test": "ts-node -r tsconfig-paths/register src/scripts/deploy-commands.ts --testbot",
+    "clear-commands-test": "ts-node -r tsconfig-paths/register src/scripts/deploy-commands.ts --testbot --clear",
     "start-emulator": "firebase emulators:start --only=firestore",
-    "tsm": "ts-node -r tsconfig-paths/register src/TSMAPI.ts",
+    "tsm": "ts-node -r tsconfig-paths/register src/scripts/TSMAPI.ts",
+    "update-created-by": "ts-node -r tsconfig-paths/register src/scripts/add-created-by.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

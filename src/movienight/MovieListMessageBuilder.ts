@@ -40,11 +40,14 @@ export class MovieListMessageBuilder {
             .reduce((str, m, idx) => {
                 let movieStr = `${str}${idx + 1}. ${m.title} - ${m.votes.length}`;
                 let emojis = '';
-                if (m.watched) {
-                    emojis += '✅';
+                if (m.createdBy === user.id) {
+                    emojis += '👑';
                 }
                 if (m.votes.includes(user.id)) {
                     emojis += '👍';
+                }
+                if (m.watched) {
+                    emojis += '✅';
                 }
                 if (emojis) {
                     movieStr += ` ${emojis}`;

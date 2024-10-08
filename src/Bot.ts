@@ -228,12 +228,19 @@ export class Bot {
         logger.debug('all events:', events);
         // logger.debug('on monday:', !!(events[0].recurringDays & Days.MONDAY));
 
+        if (!this.client.user) {
+            logger.error('Client user not set');
+            return;
+        }
+
         if ((await MovieService.getInstance().getMovies(true)).length === 0) {
             logger.debug('Seeding db with movies...');
             const movies = [];
             for (let idx = 1; idx <= 25; idx++) {
                 movies.push(MovieService.getInstance().createMovie(new Movie({
                     title: `Movie ${idx}`,
+                    votes: [ this.client.user.id ],
+                    createdBy: this.client.user.id,
                 })));
             }
             await Promise.all(movies);

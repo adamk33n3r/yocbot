@@ -24,7 +24,7 @@ export abstract class Movienight {
         if (movies.some(m => m.title.toLowerCase().startsWith(title.toLowerCase()))) {
             return interaction.followUp('Either that movie is already added (and maybe marked as watched), or you need to add a subtitle to differentiate');
         }
-        const movie = new Movie({ title });
+        const movie = new Movie({ title, createdBy: interaction.user.id });
         movie.votes.push(interaction.user.id);
         await MovieService.getInstance().createMovie(movie);
         return interaction.followUp('Movie added');

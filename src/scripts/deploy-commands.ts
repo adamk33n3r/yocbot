@@ -1,13 +1,13 @@
 import 'reflect-metadata';
-import yargs from 'yargs';
+import yargs from 'yargs/yargs';
 import { RESTPostAPIApplicationCommandsJSONBody, RESTPutAPIApplicationGuildCommandsResult, Routes } from 'discord.js';
-import { MetadataManager } from './MetadataManager';
-import { RESTWithTypes } from './RESTWithTypes';
-import { clientId, guildId, token, testBot } from './local.config.json';
-import { CommandLoader } from './CommandLoader';
-import logger from './Logger';
+import { MetadataManager } from '../MetadataManager';
+import { RESTWithTypes } from '../RESTWithTypes';
+import { clientId, guildId, token, testBot } from '../local.config.json';
+import { CommandLoader } from '../CommandLoader';
+import logger from '../Logger';
 
-const argv = yargs.options({
+const argv = yargs(process.argv.slice(2)).options({
     testbot: { type: 'boolean', default: false },
     commands: { type: 'array', string: true, default: [] as string[] },
     clear: { type: 'boolean', default: false },

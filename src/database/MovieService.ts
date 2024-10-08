@@ -1,5 +1,5 @@
 import { getApp } from 'firebase-admin/app';
-import { Firestore, Query, QueryDocumentSnapshot, QuerySnapshot, getFirestore } from 'firebase-admin/firestore';
+import { Firestore, Query, QuerySnapshot, getFirestore } from 'firebase-admin/firestore';
 import { IMovieData, Movie } from 'src/movienight/Movie';
 
 type DBMovie = Movie & { id: string };
