@@ -12,8 +12,8 @@ importers:
         specifier: ^0.9.0
         version: 0.9.0(encoding@0.1.13)
       '@discordjs/voice':
-        specifier: ^0.15.0
-        version: 0.15.0(@discordjs/opus@0.9.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)
+        specifier: ^0.17.0
+        version: 0.17.0(@discordjs/opus@0.9.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)
       bufferutil:
         specifier: ^4.0.7
         version: 4.0.8
@@ -24,7 +24,7 @@ importers:
         specifier: ^2.29.3
         version: 2.30.0
       discord.js:
-        specifier: ^14.8.0
+        specifier: ^14.16.3
         version: 14.16.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       ffmpeg-static:
         specifier: ^5.1.0
@@ -51,11 +51,14 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       play-dl:
-        specifier: ^1.9.7
-        version: 1.9.7
+        specifier: github:Yoduh/play-dl-test
+        version: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.14
+      undici:
+        specifier: ^5.0.0
+        version: 5.28.4
       utf-8-validate:
         specifier: ^5.0.10
         version: 5.0.10
@@ -183,9 +186,9 @@ packages:
     resolution: {integrity: sha512-eddz6UnOBEB1oITPinyrB2Pttej49M9FZQY8NxgEvc3tq6ZICZ19m70RsmzRdDHk80O9NoYN/25AqJl8vPVf/g==}
     engines: {node: '>=18'}
 
-  '@discordjs/voice@0.15.0':
-    resolution: {integrity: sha512-YEvrRchDhjB0QbI9QYOF/qgDwvGb9sNGUyks5d3Srl+VRoMoKkMzWY+wcEfVbAgdMIAdLi5vyrTKP/gLND26jA==}
-    engines: {node: '>=16.9.0'}
+  '@discordjs/voice@0.17.0':
+    resolution: {integrity: sha512-hArn9FF5ZYi1IkxdJEVnJi+OxlwLV0NJYWpKXsmNOojtGtAZHxmsELA+MZlu2KW1F/K1/nt7lFOfcMXNYweq9w==}
+    engines: {node: '>=16.11.0'}
 
   '@discordjs/ws@1.1.1':
     resolution: {integrity: sha512-PZ+vLpxGCRtmr2RMkqh8Zp+BenUaJqlS6xhgWKEZcgC/vfHLEzpHtKkB0sl3nZWpwtcKk6YWy+pU3okL2I97FA==}
@@ -208,6 +211,10 @@ packages:
   '@eslint/js@8.57.1':
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+
+  '@fastify/busboy@2.1.1':
+    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
+    engines: {node: '>=14'}
 
   '@fastify/busboy@3.0.0':
     resolution: {integrity: sha512-83rnH2nCvclWaPQQKvkJ2pdOjG4TZyEVuFDnlOF6KP08lDaaceVyw/W63mDuafQT+MKHCvXIPpE5uYWeM0rT4w==}
@@ -1295,9 +1302,6 @@ packages:
 
   discord-api-types@0.37.100:
     resolution: {integrity: sha512-a8zvUI0GYYwDtScfRd/TtaNBDTXwP5DiDVX7K5OmE+DRT57gBqKnwtOC5Ol8z0mRW8KQfETIgiB8U0YZ9NXiCA==}
-
-  discord-api-types@0.37.101:
-    resolution: {integrity: sha512-2wizd94t7G3A8U5Phr3AiuL4gSvhqistDwWnlk1VLTit8BI1jWUncFqFQNdPbHqS3661+Nx/iEyIwtVjPuBP3w==}
 
   discord-api-types@0.37.83:
     resolution: {integrity: sha512-urGGYeWtWNYMKnYlZnOnDHm8fVRffQs3U0SpE8RHeiuLKb/u92APS8HoQnPTFbnXmY1vVnXjXO4dOxcAn3J+DA==}
@@ -2788,8 +2792,9 @@ packages:
   play-audio@0.5.2:
     resolution: {integrity: sha512-ZAqHUKkQLix2Iga7pPbsf1LpUoBjcpwU93F1l3qBIfxYddQLhxS6GKmS0d3jV8kSVaUbr6NnOEcEMFvuX93SWQ==}
 
-  play-dl@1.9.7:
-    resolution: {integrity: sha512-KpgerWxUCY4s9Mhze2qdqPhiqd8Ve6HufpH9mBH3FN+vux55qSh6WJKDabfie8IBHN7lnrAlYcT/UdGax58c2A==}
+  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94:
+    resolution: {tarball: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94}
+    version: 1.9.7
     engines: {node: '>=16.0.0'}
 
   portfinder@1.0.32:
@@ -3409,6 +3414,10 @@ packages:
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
+  undici@5.28.4:
+    resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
+    engines: {node: '>=14.0'}
+
   undici@6.19.8:
     resolution: {integrity: sha512-U8uCCl2x9TK3WANvmBavymRzxbfFYG+tAu+fgx3zxQy3qdagQqBLwJVrdyO1TBfUXvfKveMKJZhpvUYoOjM+4g==}
     engines: {node: '>=18.17'}
@@ -3755,10 +3764,10 @@ snapshots:
 
   '@discordjs/util@1.1.1': {}
 
-  '@discordjs/voice@0.15.0(@discordjs/opus@0.9.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)':
+  '@discordjs/voice@0.17.0(@discordjs/opus@0.9.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)':
     dependencies:
       '@types/ws': 8.5.12
-      discord-api-types: 0.37.101
+      discord-api-types: 0.37.83
       prism-media: 1.3.5(@discordjs/opus@0.9.0(encoding@0.1.13))(ffmpeg-static@5.2.0)
       tslib: 2.7.0
       ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -3807,6 +3816,8 @@ snapshots:
       - supports-color
 
   '@eslint/js@8.57.1': {}
+
+  '@fastify/busboy@2.1.1': {}
 
   '@fastify/busboy@3.0.0': {}
 
@@ -5043,8 +5054,6 @@ snapshots:
       path-type: 4.0.0
 
   discord-api-types@0.37.100: {}
-
-  discord-api-types@0.37.101: {}
 
   discord-api-types@0.37.83: {}
 
@@ -6914,7 +6923,7 @@ snapshots:
 
   play-audio@0.5.2: {}
 
-  play-dl@1.9.7:
+  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94:
     dependencies:
       play-audio: 0.5.2
 
@@ -7631,6 +7640,10 @@ snapshots:
   undici-types@5.26.5: {}
 
   undici-types@6.19.8: {}
+
+  undici@5.28.4:
+    dependencies:
+      '@fastify/busboy': 2.1.1
 
   undici@6.19.8: {}
 
