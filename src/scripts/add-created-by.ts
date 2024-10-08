@@ -1,7 +1,7 @@
 import yargs from 'yargs/yargs';
-import { MovieService } from 'src/database/MovieService';
 import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { MovieService } from '../database/MovieService';
 
 const argv = yargs(process.argv.slice(2)).options({
     testbot: { type: 'boolean', default: false },
