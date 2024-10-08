@@ -39,8 +39,8 @@ export class EventMessageBuilder {
             .setDescription(partialEvent.description || null)
             .addFields(
                 { name: 'Start Date', value: partialEvent.startDate ? `<t:${partialEvent.startDate.getTime()/1000}:F>` : 'Not set', inline: true },
-                { name: 'Voice Channel', value: '#!'+partialEvent.voiceChannel?.name ?? 'Not set', inline: true },
-                { name: 'Announcement Channel', value: '#'+partialEvent.announcementChannel?.name ?? 'Not set', inline: true },
+                { name: 'Voice Channel', value: partialEvent.voiceChannel ? '#!'+partialEvent.voiceChannel.name : 'Not set', inline: true },
+                { name: 'Announcement Channel', value: partialEvent.announcementChannel ? '#'+partialEvent.announcementChannel.name : 'Not set', inline: true },
                 { name: 'Duration', value: partialEvent.duration ? formattedDuration(partialEvent.duration) : 'Not set', inline: true },
                 { name: 'Recurring Type', value: RecurringType[partialEvent.recurringType], inline: true },
                 { name: 'Recurring Days', value: recurringDays || 'Not set', inline: true },

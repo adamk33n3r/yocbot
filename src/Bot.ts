@@ -1,6 +1,6 @@
 import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
 import { isAfter, isSameDay, subHours } from 'date-fns';
-import { ActivityType, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Guild, GuildMember, Interaction, ModalBuilder, Options, Role, TextBasedChannel, TextChannel, VoiceBasedChannel } from 'discord.js';
+import { ActivityType, ChatInputCommandInteraction, Client, Collection, Events, GatewayIntentBits, Guild, GuildMember, Interaction, ModalBuilder, Options, Role, SendableChannels, TextBasedChannel, TextChannel, VoiceBasedChannel } from 'discord.js';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import * as cron from 'node-cron';
@@ -14,11 +14,11 @@ import logger from './Logger';
 import { MetadataManager } from './MetadataManager';
 import { ScheduleModal } from './modals/ScheduleModal';
 import { MusicPlayer } from './MusicPlayer';
-import { SlashCommand } from './SlashCommand';
 import { InfoModal } from './modals/InfoModal';
 import { MovieListMessageBuilder } from './movienight/MovieListMessageBuilder';
 import { MovieService } from './database/MovieService';
 import { Movie } from './movienight/Movie';
+import { SlashCommandCollection } from './SlashCommandGroup';
 
 // logger.info(generateDependencyReport());
 
@@ -46,7 +46,10 @@ export class Bot {
         return this._client.guilds.cache.find((guild) => guild.id == guildId)!;
     }
 
-    private commands: SlashCommand[] = [];
+    private slashCommands: SlashCommandCollection = new Collection();
+    public get commands(): SlashCommandCollection {
+        return new Collection(this.slashCommands);
+    }
 
     constructor(private _isProd: boolean) {
         Bot._instance = this;
@@ -74,7 +77,7 @@ export class Bot {
         const commandLoader = new CommandLoader('commands');
         commandLoader.loadAll();
 
-        this.commands = MetadataManager.instance.slashCommands;
+        this.slashCommands = MetadataManager.instance.slashCommands;
 
         initializeApp({
             credential: applicationDefault(),
@@ -84,6 +87,32 @@ export class Bot {
         });
 
         // this.setUpEventTimers();
+    }
+
+    public reloadCommands() {
+        this.commands.forEach((cmd) => {
+            if (cmd.parent) {
+                this.reloadCommand(cmd.parent.className);
+            } else {
+                logger.error('Could not reload command:', cmd.fullName, 'No parent set');
+            }
+        });
+    }
+
+    public reloadCommand(commandFile: string): boolean {
+        try {
+            const filePath = `./commands/${commandFile}`;
+            const resolved = require.resolve(filePath);
+            delete require.cache[resolved];
+            const commandLoader = new CommandLoader('commands');
+            commandLoader.load(commandFile);
+
+            this.slashCommands = MetadataManager.instance.slashCommands;
+            return true;
+        } catch {
+            logger.error('Could not find command file:', commandFile);
+            return false;
+        }
     }
 
     private setUpEventTimers() {
@@ -114,7 +143,7 @@ export class Bot {
         // Scheduled for 57 so that if an event is created for "now",
         // then it will still pick it up.
         
-        async function sendEventAnnouncement(channel: TextBasedChannel, message: string, role?: Role) {
+        async function sendEventAnnouncement(channel: SendableChannels, message: string, role?: Role) {
             channel.send(role ? `${role.toString()} ${message}` : message);
         }
         cron.schedule('2 * * * * *', async (now) => {
@@ -144,8 +173,8 @@ export class Bot {
                         continue;
                     logger.debug([now, eventDate, isSameDay(now, eventDate)]);
                     const channel = this._client.channels.cache.get(event.announcementChannelId);
-                    if (!channel?.isTextBased()) {
-                        logger.error(`not a text channel: ${event.announcementChannelId}`);
+                    if (!channel?.isSendable()) {
+                        logger.error(`not a sendable text channel: ${event.announcementChannelId}`);
                         continue;
                     }
 
@@ -334,7 +363,7 @@ export class Bot {
                         commandName += ':' + subCommand;
                     }
 
-                    const slashCommand = this.commands.find(c => c.fullName === commandName);
+                    const slashCommand = this.slashCommands.find(c => c.fullName === commandName);
                     if (!slashCommand) {
                         logger.info(`no command: ${commandName}`);
                         return;
@@ -493,7 +522,7 @@ export class Bot {
                         } else {
                             pageNum = Number.parseInt(arg);
                         }
-                        await interaction.update(MovieListMessageBuilder.buildMessage(movies, all, pageNum));
+                        await interaction.update(MovieListMessageBuilder.buildMessage(movies.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()), all, interaction.user, pageNum));
                     }
                 } else if (interaction.isModalSubmit()) {
                     logger.debug(`got modal submit: ${interaction.customId}`);
@@ -560,7 +589,7 @@ export class Bot {
             commandName += ':' + subCommand;
         }
 
-        const slashCommand = this.commands.find(c => c.fullName === commandName);
+        const slashCommand = this.slashCommands.find(c => c.fullName === commandName);
         if (!slashCommand) {
             logger.info(`no command: ${commandName}`);
             await interaction.followUp({ content: 'An error has occurred' });

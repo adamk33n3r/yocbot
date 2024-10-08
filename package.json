@@ -7,6 +7,7 @@
     "start": "cross-env NODE_ENV='prod' NODE_PATH='./dist' node dist/src/index.js",
     "startdev": "cross-env NODE_ENV='dev' ts-node -r tsconfig-paths/register src/index.ts",
     "starttest": "cross-env NODE_ENV='dev' ts-node -r tsconfig-paths/register src/index.ts --testbot",
+    "starttestdist": "cross-env NODE_ENV='dev' NODE_PATH='./dist' node dist/src/index.js --testbot",
     "build": "tsc -p tsconfig.json",
     "auth": "ts-node auth-yt.ts",
     "deploy-commands": "ts-node -r tsconfig-paths/register src/deploy-commands.ts",
@@ -27,7 +28,7 @@
     "date-fns": "^2.29.3",
     "discord.js": "^14.8.0",
     "ffmpeg-static": "^5.1.0",
-    "firebase-admin": "^11.5.0",
+    "firebase-admin": "^12.6.0",
     "got": "^12.6.0",
     "keyv": "^4.5.2",
     "keyv-firestore": "github:goto-bus-stop/keyv-firestore",
@@ -52,7 +53,8 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "tslib": "^2.5.0",
-    "typescript": "^4.9.5",
+    "typescript": "^5.6.2",
     "winston": "^3.8.2"
-  }
+  },
+  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
 }

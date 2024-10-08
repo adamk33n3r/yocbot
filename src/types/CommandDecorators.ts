@@ -28,10 +28,6 @@ export function SlashCommand(options?: SlashCommandOptions): MethodDecoratorEx {
             throw new Error(`Name of command '${name}' is not valid`);
         }
 
-        if (name == 'schedule') {
-            console.log('@SlashCommand:', name, typeof target, key, descriptor);
-        }
-
         const cmdFunc = target[key] as () => Promise<unknown>;
         const slashCommandData = new SlashCommandData({
             name,

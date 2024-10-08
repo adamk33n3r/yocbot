@@ -10,9 +10,11 @@ import {
     SlashCommandBuilder,
     SlashCommandChannelOption,
     SlashCommandNumberOption,
+    SlashCommandOptionsOnlyBuilder,
     SlashCommandRoleOption,
     SlashCommandStringOption,
     SlashCommandSubcommandBuilder,
+    SlashCommandSubcommandsOnlyBuilder,
     ToAPIApplicationCommandOptions,
 } from 'discord.js';
 import { Bot } from './Bot';
@@ -46,19 +48,20 @@ export class SlashCommand {
     private _group: SlashCommandGroup | undefined;
 
     private options: SlashCommandOption[] = [];
+    public isSubCommand = false;
 
     public get name() {
         return this.slashCommandOptions.name;
     }
 
     public get fullName(): string {
-        return this._group ? `${this._group.name}:${this.name}` : this.name;
+        return this._group && this.isSubCommand ? `${this._group.name}:${this.name}` : this.name;
     }
 
     public get parent(): SlashCommandGroup | undefined {
         return this._group;
     }
-    public set parent(val: SlashCommandGroup | undefined) {
+    public set parent(val: SlashCommandGroup) {
         this._group = val;
     }
 
@@ -124,7 +127,7 @@ export class SlashCommand {
         return builder;
     }
 
-    private addOptionsToBuilder(builder: SharedSlashCommandOptions) {
+    private addOptionsToBuilder(builder: SharedSlashCommandOptions<SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandBuilder>) {
         this.options.forEach(opt => {
             switch (opt.type) {
                 case ApplicationCommandOptionType.String:

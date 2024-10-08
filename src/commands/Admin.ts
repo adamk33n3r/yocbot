@@ -4,7 +4,7 @@ import logger from 'src/Logger';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
 
 @SlashCommandGroup()
-export abstract class AdminCommands {
+export abstract class Admin {
     @SlashCommand({
         description: 'Move all members in your voice channel to the specified channel',
         adminOnly: true,
@@ -32,5 +32,42 @@ export abstract class AdminCommands {
         }).filter(m => m));
 
         return interaction.followUp('All Moved');
+    }
+
+    @SlashCommand({
+        description: 'Reload command',
+        adminOnly: true,
+    })
+    public async reloadCommand(
+        @SlashCommandOption({
+            name: 'command',
+            description: 'Command to reload',
+            required: true,
+            autocomplete: async (interaction) => {
+                const partialName = interaction.options.getFocused().toLowerCase();
+                const data = Bot.getInstance().commands
+                    .filter(cmd => cmd.fullName.toLowerCase().startsWith(partialName))
+                    .map(m => ({ name: m.fullName, value: m.fullName }));
+                return interaction.respond(data);
+            },
+        })
+        commandName: string,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        logger.debug('reloadCommand:', commandName);
+        const command = bot.commands.get(commandName);
+        if (!command) {
+            return interaction.followUp(`Could not find command: ${commandName}`);
+        }
+        if (!command.parent) {
+            return interaction.followUp(`Command parent not set: ${commandName}`);
+        }
+
+        if (bot.reloadCommand(command.parent.className)) {
+            return interaction.followUp(`Reloaded command: ${commandName}`);
+        } else {
+            return interaction.followUp(`Could not reload command: ${commandName}`);
+        }
     }
 }

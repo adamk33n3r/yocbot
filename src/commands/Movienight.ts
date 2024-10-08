@@ -9,7 +9,7 @@ import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/C
     name: 'movies',
     description: 'Commands to manage movies for movienight',
 })
-export abstract class Movenight {
+export abstract class Movienight {
     @SlashCommand()
     public async add(
         @SlashCommandOption({
@@ -103,11 +103,10 @@ export abstract class Movenight {
             return interaction.followUp('There are no movies');
         }
 
-        const listStr = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
-            .slice(0, 5)
-            .reduce((str, m, idx) => `${str}${idx + 1}. ${m.title} - ${m.votes.length}\n`, '```\n') + '```';
+        const sorted = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
+            .slice(0, 5);
 
-        return interaction.followUp(listStr);
+        return interaction.followUp(MovieListMessageBuilder.buildMessage(sorted, false, interaction.user));
     }
 
     @SlashCommand({
@@ -128,6 +127,6 @@ export abstract class Movenight {
             return interaction.followUp('There are no movies');
         }
 
-        return interaction.followUp(MovieListMessageBuilder.buildMessage(movies, all));
+        return interaction.followUp(MovieListMessageBuilder.buildMessage(movies.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()), all, interaction.user));
     }
 }

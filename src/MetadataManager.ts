@@ -1,13 +1,15 @@
-import type { SlashCommand } from './SlashCommand';
-import type { SlashCommandGroup } from './SlashCommandGroup';
+import { Collection } from 'discord.js';
+import type { SlashCommandCollection, SlashCommandGroup } from './SlashCommandGroup';
+
+type SlashCommandGroupCollection = Collection<string, SlashCommandGroup>;
 
 export class MetadataManager {
-    private _slashCommandGroups: SlashCommandGroup[] = [];
-    public get slashCommands(): SlashCommand[] {
+    private _slashCommandGroups: SlashCommandGroupCollection = new Collection();
+    public get slashCommands(): SlashCommandCollection {
         return this._slashCommandGroups.flatMap(scg => scg.commands);
     }
-    public get slashCommandGroups(): SlashCommandGroup[] {
-        return this._slashCommandGroups.slice();
+    public get slashCommandGroups(): SlashCommandGroupCollection {
+        return new Collection(this._slashCommandGroups);
     }
 
     private static _instance: MetadataManager;
@@ -19,6 +21,6 @@ export class MetadataManager {
     }
 
     public addSlashCommandGroup(slashCommandGroup: SlashCommandGroup) {
-        this._slashCommandGroups.push(slashCommandGroup);
+        this._slashCommandGroups.set(slashCommandGroup.name, slashCommandGroup);
     }
 }

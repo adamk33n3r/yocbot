@@ -24,7 +24,7 @@ if (!argv.clear) {
 }
 
 const commands: RESTPostAPIApplicationCommandsJSONBody[] = [];
-for (const cmdGrp of MetadataManager.instance.slashCommandGroups) {
+for (const [_, cmdGrp] of MetadataManager.instance.slashCommandGroups) {
     logger.info(`Command name: ${cmdGrp.name}`, cmdGrp.toJSON());
     const cmdJson = cmdGrp.toJSON();
     if (Array.isArray(cmdJson)) {

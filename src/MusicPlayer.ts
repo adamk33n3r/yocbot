@@ -224,7 +224,7 @@ export class MusicPlayer {
         }
 
         const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { force: true });
-        if (statusChannel?.isTextBased()) {
+        if (statusChannel?.isSendable()) {
             if (statusChannel.lastMessageId) {
                 try {
                     const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, force: true });
@@ -247,7 +247,7 @@ export class MusicPlayer {
             .setDescription('Nothing in the queue');
 
         const statusChannel = await this.bot.client.channels.fetch(localConfig.statusChannelId, { force: true });
-        if (statusChannel?.isTextBased()) {
+        if (statusChannel?.isSendable()) {
             if (statusChannel.lastMessageId) {
                 try {
                     const msg = await statusChannel.messages.fetch({ message: statusChannel.lastMessageId, force: true });
