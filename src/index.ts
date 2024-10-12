@@ -15,7 +15,7 @@ const PERMISSIONS = 8; // Admin
 const SCOPE = 'bot%20applications.commands';
 
 if (argv.testbot) {
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = 'C:\\Users\\adamg\\SynologyDrive\\Files\\dev\\discordbot\\src\\.firestore-creds.json';
+    process.env.GCLOUD_PROJECT = 'ye-olde-chums';
     process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
     logger.info(`https://discord.com/api/oauth2/authorize?client_id=${localConfig.testBot.clientId}&permissions=${PERMISSIONS}&scope=${SCOPE}`);
     new Bot(!argv.testbot).login(localConfig.testBot.token);
