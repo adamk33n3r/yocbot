@@ -38,6 +38,9 @@ importers:
       firebase-admin:
         specifier: ^12.6.0
         version: 12.6.0(encoding@0.1.13)
+      fuzzysort:
+        specifier: ^3.1.0
+        version: 3.1.0
       got:
         specifier: ^12.6.0
         version: 12.6.1
@@ -1693,6 +1696,9 @@ packages:
 
   functional-red-black-tree@1.0.1:
     resolution: {integrity: sha512-dsKNQNdj6xA3T+QlADDA7mOSlX0qiMINjn0cgr+eGHGsbSHzTabcIogz2+p/iqP1Xs6EP/sS2SbqH+brGTbq0g==}
+
+  fuzzysort@3.1.0:
+    resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
   gauge@3.0.2:
     resolution: {integrity: sha512-+5J6MS/5XksCuXq++uFRsnUd7Ovu1XenbeuIuNRJxYWjgQbPuFhT14lAvsWfqfAmnwluf1OwMjz39HjfLPci0Q==}
@@ -5634,6 +5640,8 @@ snapshots:
   function-bind@1.1.2: {}
 
   functional-red-black-tree@1.0.1: {}
+
+  fuzzysort@3.1.0: {}
 
   gauge@3.0.2:
     dependencies:

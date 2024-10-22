@@ -5,14 +5,19 @@ import { Movie } from 'src/movienight/Movie';
 import { MovieListMessageBuilder } from 'src/movienight/MovieListMessageBuilder';
 import { AutocompleteFunc } from 'src/SlashCommand';
 import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
+import fuzzysort from 'fuzzysort';
 
 const autocomplete: AutocompleteFunc = async (interaction) => {
     const partialName = interaction.options.getFocused().toLowerCase();
     const movies = await MovieService.getInstance().getMovies();
-    const data = movies
-        .filter(m => m.title.toLowerCase().startsWith(partialName) || m.title.toLowerCase().includes(partialName) || m.id.toLowerCase().startsWith(partialName))
-        .sort((a, b) => a.title.localeCompare(b.title))
-        .map(m => ({ name: `${m.title} - ${m.id}`, value: m.id }));
+    const filteredMovies = movies.filter(m => m.title.toLowerCase().includes(partialName) || m.id.toLowerCase().startsWith(partialName));
+    const fuzzy = fuzzysort.go(partialName, filteredMovies, {
+        limit: 10,
+        keys: ['title', 'id'],
+    });
+    const data = fuzzy
+        .toSorted((a, b) => a.obj.title.localeCompare(b.obj.title, undefined, { numeric: true, sensitivity: 'base' }))
+        .map(m => ({ name: `${m.obj.title} - ${m.obj.id}`, value: m.obj.id }));
     return interaction.respond(data);
 };
 
