@@ -31,6 +31,37 @@ export abstract class Movienight {
     }
 
     @SlashCommand()
+    public async remove(
+        @SlashCommandOption({
+            name: 'title',
+            description: 'Title of the movie',
+            autocomplete: async (interaction) => {
+                const partialName = interaction.options.getFocused().toLowerCase();
+                const movies = await MovieService.getInstance().getMovies();
+                const data = movies
+                    .filter(m => m.title.toLowerCase().startsWith(partialName) || m.id.toLowerCase().startsWith(partialName))
+                    .map(m => ({ name: `${m.title} - ${m.id}`, value: m.id }));
+                return interaction.respond(data);
+            },
+        })
+        id: string,
+        bot: Bot,
+        interaction: ChatInputCommandInteraction,
+    ) {
+        const movie = await MovieService.getInstance().getMovie(id);
+        if (!movie) {
+            return interaction.followUp(`Could not find movie with id: ${id}`);
+        }
+
+        if (movie.votes.length > 1 || movie.createdBy !== interaction.user.id) {
+            return interaction.followUp('You can only remove movies added by you and if nobody else has voted for it');
+        }
+
+        await MovieService.getInstance().deleteMovie(movie);
+        return interaction.followUp(`Removed movie ${movie.title}`);
+    }
+
+    @SlashCommand()
     public async watched(
         @SlashCommandOption({
             name: 'title',
