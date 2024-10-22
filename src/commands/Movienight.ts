@@ -16,7 +16,7 @@ const autocomplete: AutocompleteFunc = async (interaction) => {
         keys: ['title', 'id'],
     });
     const data = fuzzy
-        .toSorted((a, b) => a.obj.title.localeCompare(b.obj.title, undefined, { numeric: true, sensitivity: 'base' }))
+        .toSorted((a, b) => b.score - a.score || a.obj.title.localeCompare(b.obj.title, undefined, { numeric: true, sensitivity: 'base' }))
         .map(m => ({ name: `${m.obj.title} - ${m.obj.id}`, value: m.obj.id }));
     return interaction.respond(data);
 };
