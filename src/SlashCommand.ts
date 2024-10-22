@@ -33,6 +33,8 @@ export interface Options {
     guards?: GuardPredicate[];
 }
 
+export type AutocompleteFunc = (interaction: AutocompleteInteraction) => Promise<void>;
+
 export interface SlashCommandOption {
     name: string;
     description: string;
@@ -41,7 +43,7 @@ export interface SlashCommandOption {
     maxValue?: number;
     channelTypes?: ApplicationCommandOptionAllowedChannelTypes[];
     required?: boolean;
-    autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
+    autocomplete?: AutocompleteFunc;
 }
 
 export class SlashCommand {
