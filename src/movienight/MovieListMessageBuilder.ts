@@ -1,4 +1,4 @@
-import { ActionRowBuilder, BaseMessageOptions, ButtonBuilder, ButtonStyle, MessageActionRowComponentBuilder, User } from 'discord.js';
+import { ActionRowBuilder, BaseMessageOptions, ButtonBuilder, ButtonStyle, codeBlock, MessageActionRowComponentBuilder, User } from 'discord.js';
 import { Movie } from './Movie';
 
 const MOVIES_PER_PAGE = 10;
@@ -53,8 +53,8 @@ export class MovieListMessageBuilder {
                     movieStr += ` ${emojis}`;
                 }
                 return `${movieStr}\n`;
-            }, '```\n') + '```';
+            }, '');
 
-        return { content: '**Movie List**\n' + (numPages > 1 ? `Page ${pageNum + 1} / ${numPages}\n` : '') + listStr, components };
+        return { content: '**Movie List**\n' + (numPages > 1 ? `Page ${pageNum + 1} / ${numPages}\n` : '') + codeBlock(listStr), components };
     }
 }

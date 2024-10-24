@@ -1,6 +1,6 @@
 {
   "name": "yocbot",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "",
   "main": "dist/src/index.js",
   "scripts": {
@@ -16,6 +16,8 @@
     "start-emulator": "firebase emulators:start --only=firestore",
     "tsm": "ts-node -r tsconfig-paths/register src/scripts/TSMAPI.ts",
     "update-created-by": "ts-node -r tsconfig-paths/register src/scripts/add-created-by.ts",
+    "dockerbuild": "docker build . --tag test_bot",
+    "dockerruntest": "docker run -v \"$(pwd)\\.data:/app/.data\" -v \"$(pwd)\\src\\local.config.json:/app/dist/src/local.config.json\" -v \"$(pwd)\\src\\.firestore-creds.json:/tmp/keys/.firestore-creds.json:ro\" test_bot pnpm starttestdist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

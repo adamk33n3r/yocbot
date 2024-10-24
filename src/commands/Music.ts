@@ -1,9 +1,24 @@
 import { getVoiceConnection } from '@discordjs/voice';
-import { ActionRowBuilder, ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, StringSelectMenuBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ApplicationCommandOptionType,
+    ChatInputCommandInteraction,
+    GuildMember,
+    StringSelectMenuBuilder,
+    codeBlock,
+} from 'discord.js';
 import { Bot } from 'src/Bot';
-import { SlashCommand, SlashCommandGroup, SlashCommandOption } from 'src/types/CommandDecorators';
+import {
+    SlashCommand,
+    SlashCommandGroup,
+    SlashCommandOption,
+} from 'src/types/CommandDecorators';
 import { OnlyRoles } from './guards/Permissions';
-import { BotMustBeDisconnected, MemberMustBeInSameVoiceChannel, MemberMustBeInVoiceChannel } from './guards/VoiceChannel';
+import {
+    BotMustBeDisconnected,
+    MemberMustBeInSameVoiceChannel,
+    MemberMustBeInVoiceChannel,
+} from './guards/VoiceChannel';
 import logger from '../Logger';
 
 @SlashCommandGroup({
@@ -218,10 +233,21 @@ export abstract class MusicCommands {
             return interaction.followUp('Nothing in queue');
         }
         const nowPlayingStr = nowPlaying ? `Now Playing: ${nowPlaying.title} - ${nowPlaying.channel?.name}`: '';
-        const queueStr = queue.slice(0, 20).map((s, idx) => `${(idx + 1).toString().padStart(2)}. ${s.title} - ${s.channel?.name}`).join('\n');
+        const queueItems = queue.slice(0, 20).map((s, idx) => `${(idx + 1).toString().padStart(2)}. ${s.title} - ${s.channel?.name}`);
+        let currentLength = 0;
+        const limitedQueue: string[] = [];
+        for (const queueItem of queueItems) {
+            const lineLength = queueItem.length + 1; // + 1 for the newline
+            if (currentLength + lineLength <= 2000) { // 2000 max character limit in messages
+                limitedQueue.push(queueItem);
+                currentLength += lineLength;
+            } else {
+                break;
+            }
+        }
 
         return interaction.followUp({
-            content: `\`\`\`${nowPlayingStr}\n${queueStr}\`\`\``,
+            content: codeBlock(`${nowPlayingStr}\n${limitedQueue.join('\n')}`),
         });
     }
 
