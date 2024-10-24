@@ -25,6 +25,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract package version
+        id: pkgversion
+        run: |
+          PKG_VERSION=$(jq -r ".version" "package.json")
+          echo "$PKG_VERSION"
+          echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_OUTPUT
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -38,6 +44,8 @@ jobs:
             type=sha
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.pkgversion.outputs.PKG_VERSION }}
+            type=raw,value=dev-{{date 'YYYYMMDD'}}-{{sha}}
       - name: Build and push
         id: push
         uses: docker/build-push-action@v6
