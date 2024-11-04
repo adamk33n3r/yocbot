@@ -234,7 +234,7 @@ export abstract class MusicCommands {
         }
         const nowPlayingStr = nowPlaying ? `Now Playing: ${nowPlaying.title} - ${nowPlaying.channel?.name}`: '';
         const queueItems = queue.slice(0, 20).map((s, idx) => `${(idx + 1).toString().padStart(2)}. ${s.title} - ${s.channel?.name}`);
-        let currentLength = 0;
+        let currentLength = nowPlayingStr.length + 1;
         const limitedQueue: string[] = [];
         for (const queueItem of queueItems) {
             const lineLength = queueItem.length + 1; // + 1 for the newline

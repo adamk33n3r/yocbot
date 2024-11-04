@@ -608,7 +608,3 @@ export class Bot {
         await slashCommand.execute(this, interaction);
     }
 }
-
-// player.on('trackStart', (queue: Queue<QueueMetadata>, track) => queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`))
-
-// https://discord.com/channels/146029873629102080/1014356927196712980/1014396
