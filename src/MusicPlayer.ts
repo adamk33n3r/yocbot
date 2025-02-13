@@ -1,6 +1,7 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
 import { EmbedBuilder } from 'discord.js';
 import play, { YouTubeVideo } from 'play-dl';
+import ytdl from '@distube/ytdl-core';
 import { Bot } from './Bot';
 import logger from './Logger';
 import localConfig from './local.config.json';
@@ -123,7 +124,10 @@ export class MusicPlayer {
             if (!nextSong) {
                 return 'Unknown error ocurred. Song should have been in queue';
             }
-            this.playSong(nextSong);
+            const error = await this.playSong(nextSong);
+            if (error) {
+                return error;
+            }
         }
 
 
@@ -178,10 +182,14 @@ export class MusicPlayer {
         }
 
         try {
-            const stream = await play.stream(song.url);
-            const audio = createAudioResource(stream.stream, {
+            // const stream = await play.stream(song.url);
+            const stream = ytdl(song.url, { filter: 'audioonly', liveBuffer: 0, quality: 'lowestaudio' });
+            if (!stream) {
+                console.error('Failed to get stream');
+                return 'Failed to get stream';
+            }
+            const audio = createAudioResource(stream, {
                 inlineVolume: true,
-                inputType: stream.type,
             });
             connection.subscribe(this.audioPlayer);
             this.currentSong = song;
@@ -191,7 +199,7 @@ export class MusicPlayer {
             this.updateStatus(song);
         } catch (e) {
             console.error(e);
-            return;
+            return String(e);
         }
     }
 
