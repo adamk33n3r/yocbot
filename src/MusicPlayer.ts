@@ -1,5 +1,5 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
-import { DiscordAPIError, EmbedBuilder, Guild } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import play, { YouTubeVideo } from 'play-dl';
 import { Bot } from './Bot';
 import logger from './Logger';
@@ -177,17 +177,22 @@ export class MusicPlayer {
             return;
         }
 
-        const stream = await play.stream(song.url);
-        const audio = createAudioResource(stream.stream, {
-            inlineVolume: true,
-            inputType: stream.type,
-        });
-        connection.subscribe(this.audioPlayer);
-        this.currentSong = song;
-        this.audioPlayer.play(audio);
-        audio.volume?.setVolume(this._volume);
+        try {
+            const stream = await play.stream(song.url);
+            const audio = createAudioResource(stream.stream, {
+                inlineVolume: true,
+                inputType: stream.type,
+            });
+            connection.subscribe(this.audioPlayer);
+            this.currentSong = song;
+            this.audioPlayer.play(audio);
+            audio.volume?.setVolume(this._volume);
 
-        this.updateStatus(song);
+            this.updateStatus(song);
+        } catch (e) {
+            console.error(e);
+            return;
+        }
     }
 
     private async setupSpotify() {

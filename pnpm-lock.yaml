@@ -61,7 +61,7 @@ importers:
         version: 0.7.0
       play-dl:
         specifier: github:Yoduh/play-dl-test
-        version: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94
+        version: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/eeec33d383704b16c8e89126cacf98b3f05403b1
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.14
@@ -2795,8 +2795,8 @@ packages:
   play-audio@0.5.2:
     resolution: {integrity: sha512-ZAqHUKkQLix2Iga7pPbsf1LpUoBjcpwU93F1l3qBIfxYddQLhxS6GKmS0d3jV8kSVaUbr6NnOEcEMFvuX93SWQ==}
 
-  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94:
-    resolution: {tarball: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94}
+  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/eeec33d383704b16c8e89126cacf98b3f05403b1:
+    resolution: {tarball: https://codeload.github.com/Yoduh/play-dl-test/tar.gz/eeec33d383704b16c8e89126cacf98b3f05403b1}
     version: 1.9.7
     engines: {node: '>=16.0.0'}
 
@@ -6924,7 +6924,7 @@ snapshots:
 
   play-audio@0.5.2: {}
 
-  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/e3b147a7d2d7afd745c00dc78023ad46e20bbd94:
+  play-dl@https://codeload.github.com/Yoduh/play-dl-test/tar.gz/eeec33d383704b16c8e89126cacf98b3f05403b1:
     dependencies:
       play-audio: 0.5.2
 
