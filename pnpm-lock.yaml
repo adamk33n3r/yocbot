@@ -18,8 +18,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0(@discordjs/opus@0.10.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)
       '@distube/ytdl-core':
-        specifier: ^4.16.3
-        version: 4.16.3
+        specifier: ^4.16.4
+        version: 4.16.4
       bufferutil:
         specifier: ^4.0.7
         version: 4.0.8
@@ -203,8 +203,8 @@ packages:
     resolution: {integrity: sha512-PZ+vLpxGCRtmr2RMkqh8Zp+BenUaJqlS6xhgWKEZcgC/vfHLEzpHtKkB0sl3nZWpwtcKk6YWy+pU3okL2I97FA==}
     engines: {node: '>=16.11.0'}
 
-  '@distube/ytdl-core@4.16.3':
-    resolution: {integrity: sha512-E+xXs89DtbbNhYsD3/3IUQ7aGhLXbe9Y69a5HaoGKsK6z2VzyPtILSzv5rqWYI5VIWUaGp/3DuGu2pUUgyv3Bw==}
+  '@distube/ytdl-core@4.16.4':
+    resolution: {integrity: sha512-r0ZPMMB5rbUSQSez//dYDWjPSAEOm6eeV+9gyR+1vngGYFUi953Z/CoF4epTBS40X8dR32gyH3ERlh7NbnCaRg==}
     engines: {node: '>=20.18.1'}
 
   '@eslint-community/eslint-utils@4.4.0':
@@ -3849,7 +3849,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@distube/ytdl-core@4.16.3':
+  '@distube/ytdl-core@4.16.4':
     dependencies:
       http-cookie-agent: 6.0.8(tough-cookie@5.1.1)(undici@7.3.0)
       https-proxy-agent: 7.0.6
