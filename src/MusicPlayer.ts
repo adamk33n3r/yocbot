@@ -185,8 +185,7 @@ export class MusicPlayer {
             // const stream = await play.stream(song.url);
             const stream = ytdl(song.url, {
                 filter: 'audioonly',
-                liveBuffer: 2000,
-                dlChunkSize: 4096,
+                liveBuffer: 0,
                 quality: 'lowestaudio',
                 highWaterMark: 1 << 25,
             }).once('error', (err) => {
@@ -195,7 +194,7 @@ export class MusicPlayer {
                     this.skip();
                 }
             }).once('end', () => {
-                console.log(`Downloaded song ${song.title}`);
+                logger.info(`Streaming song: ${song.title}`);
             });
             if (!stream) {
                 console.error('Failed to get stream');
