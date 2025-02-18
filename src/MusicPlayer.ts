@@ -183,7 +183,20 @@ export class MusicPlayer {
 
         try {
             // const stream = await play.stream(song.url);
-            const stream = ytdl(song.url, { filter: 'audioonly', liveBuffer: 0, quality: 'lowestaudio' });
+            const stream = ytdl(song.url, {
+                filter: 'audioonly',
+                liveBuffer: 2000,
+                dlChunkSize: 4096,
+                quality: 'lowestaudio',
+                highWaterMark: 1 << 25,
+            }).once('error', (err) => {
+                console.error(err.message, '\n', err.stack);
+                if (err.message.includes('410')) {
+                    this.skip();
+                }
+            }).once('end', () => {
+                console.log(`Downloaded song ${song.title}`);
+            });
             if (!stream) {
                 console.error('Failed to get stream');
                 return 'Failed to get stream';
