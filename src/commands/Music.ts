@@ -24,6 +24,7 @@ import logger from '../Logger';
 @SlashCommandGroup({
     name: 'music',
     description: 'Music commands',
+    disabled: true,
 })
 export abstract class MusicCommands {
     @SlashCommand({

@@ -5,6 +5,7 @@ import { SLASH_COMMANDS, SLASH_COMMAND_OPTIONS } from './types/CommandDecorators
 export interface SlashCommandGroupOptions {
     name: string;
     description: string;
+    disabled?: boolean;
 }
 
 export type SlashCommandCollection = Collection<string, SlashCommand>
@@ -20,6 +21,10 @@ export class SlashCommandGroup {
         return new Collection(this.slashCommands);
     }
     private slashCommands: SlashCommandCollection = new Collection();
+    public get isDisabled(): boolean {
+        return this.disabled;
+    }
+    private disabled: boolean = false;
 
     constructor(private target: any, private options?: SlashCommandGroupOptions) {
         const slashCommands = Reflect.getMetadata(SLASH_COMMANDS, target.prototype) as Map<string, SlashCommand>;
@@ -27,6 +32,7 @@ export class SlashCommandGroup {
             slashCommand.parent = this;
             if (options) {
                 slashCommand.isSubCommand = true;
+                this.disabled = options.disabled ?? false;
             }
             this.slashCommands.set(slashCommand.fullName, slashCommand);
 

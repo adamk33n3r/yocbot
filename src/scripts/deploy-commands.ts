@@ -25,7 +25,11 @@ if (!argv.clear) {
 
 const commands: RESTPostAPIApplicationCommandsJSONBody[] = [];
 for (const [_, cmdGrp] of MetadataManager.instance.slashCommandGroups) {
-    logger.info(`Command name: ${cmdGrp.name}`, cmdGrp.toJSON());
+    logger.info(`Command name: ${cmdGrp.name}`);//, cmdGrp.toJSON());
+    if (cmdGrp.isDisabled) {
+        logger.info(`Command group ${cmdGrp.name} is disabled. Skipping...`);
+        continue;
+    }
     const cmdJson = cmdGrp.toJSON();
     if (Array.isArray(cmdJson)) {
         commands.push(...cmdJson);

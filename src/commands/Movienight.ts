@@ -121,6 +121,12 @@ export abstract class Movienight {
         description: 'Top 5 movies',
     })
     public async top(
+        @SlashCommandOption({
+            name: 'number',
+            description: 'Number of movies to show',
+            required: false,
+        })
+        number: number,
         bot: Bot,
         interaction: ChatInputCommandInteraction,
     ) {
@@ -130,7 +136,7 @@ export abstract class Movienight {
         }
 
         const sorted = movies.sort((a, b) => (b.votes.length - a.votes.length) || (a.createdAt.getTime() - b.createdAt.getTime()))
-            .slice(0, 5);
+            .slice(0, number ?? 5);
 
         return interaction.followUp(MovieListMessageBuilder.buildMessage(sorted, false, interaction.user));
     }
