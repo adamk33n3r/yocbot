@@ -18,8 +18,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0(@discordjs/opus@0.10.0(encoding@0.1.13))(bufferutil@4.0.8)(ffmpeg-static@5.2.0)(utf-8-validate@5.0.10)
       '@distube/ytdl-core':
-        specifier: ^4.16.9
-        version: 4.16.9
+        specifier: ^4.16.10
+        version: 4.16.10
       bufferutil:
         specifier: ^4.0.7
         version: 4.0.8
@@ -83,6 +83,9 @@ importers:
       yargs:
         specifier: ^17.7.1
         version: 17.7.2
+      youtubei.js:
+        specifier: ^13.4.0
+        version: 13.4.0
       yt-search:
         specifier: ^2.10.4
         version: 2.12.1
@@ -144,6 +147,9 @@ packages:
     resolution: {integrity: sha512-vwIVdXG+j+FOpkwqHRcBgHLYNL7XMkufrlaFvL9o6Ai9sJn9+PdyIL5qa0XzTZw084c+u9LOls53eoZWP/W5WQ==}
     engines: {node: '>=6.9.0'}
 
+  '@bufbuild/protobuf@2.5.1':
+    resolution: {integrity: sha512-lut4UTvKL8tqtend0UDu7R79/n9jA7Jtxf77RNPbxtmWqfWI4qQ9bTjf7KCS4vfqLmpQbuHr1ciqJumAgJODdw==}
+
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
@@ -203,8 +209,8 @@ packages:
     resolution: {integrity: sha512-PZ+vLpxGCRtmr2RMkqh8Zp+BenUaJqlS6xhgWKEZcgC/vfHLEzpHtKkB0sl3nZWpwtcKk6YWy+pU3okL2I97FA==}
     engines: {node: '>=16.11.0'}
 
-  '@distube/ytdl-core@4.16.9':
-    resolution: {integrity: sha512-eRYM3lDR1/1ZB+k6jzIdR+8m9VsYEqjz9+DstX1S/aW1f2rlbj22WCdrRbE+sE3DJW8DLJEp69akfjWqQ+nKIw==}
+  '@distube/ytdl-core@4.16.10':
+    resolution: {integrity: sha512-KFKZtNlynOO0PYxelUF5h2bKyAU1d8fe6aZmo+gxWt7H2MQbd0bUeyV4y9iWhI57nukjkSXXQGB625CfhrVdGQ==}
     engines: {node: '>=20.18.1'}
 
   '@eslint-community/eslint-utils@4.4.0':
@@ -2141,6 +2147,9 @@ packages:
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
+  jintr@3.3.1:
+    resolution: {integrity: sha512-nnOzyhf0SLpbWuZ270Omwbj5LcXUkTcZkVnK8/veJXtSZOiATM5gMZMdmzN75FmTyj+NVgrGaPdH12zIJ24oIA==}
+
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
 
@@ -3699,6 +3708,9 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  youtubei.js@13.4.0:
+    resolution: {integrity: sha512-+fmIZU/dWAjsROONrASy1REwVpy6umAPVuoNLr/4iNmZXl84LyBef0n3hrd1Vn9035EuINToGyQcBmifwUEemA==}
+
   yt-search@2.12.1:
     resolution: {integrity: sha512-suEbEGqIDa7OBuZQSNabPKS4sZrHrocak7JhxSw3gagCUxPgHqyEDqyWEruvLYax2uCIQ7UhQoDVqQGOFn+jrQ==}
     hasBin: true
@@ -3733,6 +3745,8 @@ snapshots:
       '@babel/helper-string-parser': 7.25.7
       '@babel/helper-validator-identifier': 7.25.7
       to-fast-properties: 2.0.0
+
+  '@bufbuild/protobuf@2.5.1': {}
 
   '@colors/colors@1.5.0':
     optional: true
@@ -3841,7 +3855,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@distube/ytdl-core@4.16.9':
+  '@distube/ytdl-core@4.16.10':
     dependencies:
       http-cookie-agent: 7.0.1(tough-cookie@5.1.2)(undici@7.8.0)
       https-proxy-agent: 7.0.6
@@ -6278,6 +6292,10 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
+  jintr@3.3.1:
+    dependencies:
+      acorn: 8.12.1
+
   jju@1.4.0: {}
 
   join-path@1.1.1:
@@ -7950,6 +7968,13 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  youtubei.js@13.4.0:
+    dependencies:
+      '@bufbuild/protobuf': 2.5.1
+      jintr: 3.3.1
+      tslib: 2.7.0
+      undici: 5.28.4
 
   yt-search@2.12.1:
     dependencies:

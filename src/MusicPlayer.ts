@@ -1,10 +1,15 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior } from '@discordjs/voice';
+import fs from 'node:fs';
 import { EmbedBuilder } from 'discord.js';
 import play, { YouTubeVideo } from 'play-dl';
 import ytdl from '@distube/ytdl-core';
+import { Innertube } from 'youtubei.js';
 import { Bot } from './Bot';
 import logger from './Logger';
 import localConfig from './local.config.json';
+import ytdlData from '../.data/youtube-ytdl.json';
+import ytiCreds from '../.data/youtubei-creds.json';
+import { Readable } from 'node:stream';
 
 export class MusicPlayer {
 
@@ -13,6 +18,8 @@ export class MusicPlayer {
     private audioPlayer: AudioPlayer;
     private _volume: number = 0.05;
     private inactivityTimeout: NodeJS.Timeout | null = null;
+    private ytdlAgent: ytdl.Agent;
+    private innerTube: Innertube | undefined;
 
     public get volume() {
         return this._volume;
@@ -53,6 +60,13 @@ export class MusicPlayer {
     constructor(private bot: Bot, private guildId: string) {
         this.setupSpotify();
         this.setupSoundCloud();
+        this.ytdlAgent = ytdl.createAgent(ytdlData);
+
+        const cookie = fs.readFileSync('.data/youtube-cookie.data').toString();
+        Innertube.create({ cookie }).then((innertube) => {
+            this.innerTube = innertube;
+            // this.innerTube.session.signIn(ytiCreds);
+        });
         this.audioPlayer = createAudioPlayer({
             behaviors: {
                 noSubscriber: NoSubscriberBehavior.Play,
@@ -183,23 +197,30 @@ export class MusicPlayer {
 
         try {
             // const stream = await play.stream(song.url);
-            const stream = ytdl(song.url, {
-                filter: 'audioonly',
-                liveBuffer: 0,
-                quality: 'lowestaudio',
-                highWaterMark: 1 << 25,
-            }).once('error', (err) => {
-                console.error(err.message, '\n', err.stack);
-                if (err.message.includes('410')) {
-                    this.skip();
-                }
-            }).once('end', () => {
-                logger.info(`Streaming song: ${song.title}`);
+            // const stream = ytdl(song.url, {
+            //     agent: this.ytdlAgent,
+            //     filter: 'audioonly',
+            //     liveBuffer: 0,
+            //     quality: 'lowestaudio',
+            //     highWaterMark: 1 << 25,
+            // }).once('error', (err) => {
+            //     console.error(err.message, '\n', err.stack);
+            //     if (err.message.includes('410')) {
+            //         this.skip();
+            //     }
+            // }).once('end', () => {
+            //     logger.info(`Streaming song: ${song.title}`);
+            // });
+            // if (!stream) {
+            //     console.error('Failed to get stream');
+            //     return 'Failed to get stream';
+            // }
+
+            const songData = await this.innerTube!.download(song.id!, {
+                quality: 'bestefficiency',
+                type: 'audio',
             });
-            if (!stream) {
-                console.error('Failed to get stream');
-                return 'Failed to get stream';
-            }
+            const stream = Readable.fromWeb(songData as any);
             const audio = createAudioResource(stream, {
                 inlineVolume: true,
             });
