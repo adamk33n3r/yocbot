@@ -217,7 +217,7 @@ export class MusicPlayer {
             // }
 
             const songData = await this.innerTube!.download(song.id!, {
-                quality: 'bestefficiency',
+                // quality: 'bestefficiency',
                 type: 'audio',
             });
             const stream = Readable.fromWeb(songData as any);
