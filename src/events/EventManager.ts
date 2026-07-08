@@ -157,7 +157,7 @@ export class EventManager {
             // only used for external events, so not important, but still shows up in the UI nonetheless
             scheduledEndTime: addMinutes(next, event.duration),
             channel: event.voiceChannelId,
-            image: event.imageUrl || 'https://yoc.gg/assets/images/yoc-profile.png',
+            image: event.imageUrl,
         });
 
         // Add discord event to the event
