@@ -1,6 +1,6 @@
 {
   "name": "yocbot",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "description": "",
   "main": "dist/src/index.js",
   "scripts": {
