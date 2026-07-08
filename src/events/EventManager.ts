@@ -45,8 +45,19 @@ export class EventManager {
 
     private event$: EventService;
 
+    private eventCache: (Event & IEventDataComplete)[] | null = null;
+
     private constructor() {
         this.event$ = EventService.getInstance();
+        this.startEventPolling();
+    }
+
+    private startEventPolling() {
+        const fetch = async () => {
+            this.eventCache = await this.event$.getEvents();
+        };
+        setInterval(fetch, 1000 * 10);
+        fetch();
     }
 
     public async createEvent(eventOptions: EventCreateOptions): Promise<Event> {
@@ -85,8 +96,11 @@ export class EventManager {
         return event;
     }
 
-    public async getEvents() {
-        return await this.event$.getEvents();
+    public async getEvents(force: boolean = false) {
+        if (force || this.eventCache == null) {
+            this.eventCache = await this.event$.getEvents();
+        }
+        return this.eventCache;
     }
 
     public async getEvent(id: string) {

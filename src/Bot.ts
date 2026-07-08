@@ -214,8 +214,6 @@ export class Bot {
             return;
         }
 
-        const eventDB = EventService.getInstance();
-
         // await eventDB.deleteAll();
 
         // EventManager.getInstance().createEvent(this.guild.scheduledEvents, {
@@ -224,7 +222,7 @@ export class Bot {
         //     channel: '921199392827006996',
         //     createdBy: '',
         // });
-        const events = await eventDB.getEvents();
+        const events = await EventManager.getInstance().getEvents();
         logger.debug('all events:', events);
         // logger.debug('on monday:', !!(events[0].recurringDays & Days.MONDAY));
 
